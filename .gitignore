@@ -1,5 +1,5 @@
-*/figs/
-*/data/
+stock-specific/*/figs/*
+stock-specific/*/data/*
 
 # History files
 .Rhistory
