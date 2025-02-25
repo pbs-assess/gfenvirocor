@@ -1,5 +1,7 @@
+# Stock-specific outputs
 stock-specific/*/figs/*
 stock-specific/*/data/*
+stock-specific/*/output/*
 
 # History files
 .Rhistory
