@@ -1,7 +1,11 @@
 # Stock-specific outputs
-stock-specific/*/figs/*
-stock-specific/*/data/*
-stock-specific/*/output/*
+#stock-specific/lingcod/figs/
+#stock-specific/lingcod/data/
+#stock-specific/lingcod/output/
+
+*.rdata
+*.rds
+*.png
 
 # History files
 .Rhistory
