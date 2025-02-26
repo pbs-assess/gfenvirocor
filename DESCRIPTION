@@ -1,0 +1,18 @@
+Package: gfenvirocor
+Title: Environmental Correlations for Groundfish Stocks while Propogating Uncertainty
+Version: 0.0.0.9000
+Authors@R: 
+    c(person("Philina", "English", , "philina.english@dfo-mpo.gc.ca", role = c("aut", "cre"),
+           comment = c(ORCID = "https://orcid.org/0000-0003-2992-6782")),
+      person(given = c("Sean", "C."), family = "Anderson", role = "aut"),
+      person(given = c("Robyn", "E."), family = "Forrest", role = "aut"))
+Description: What the package does (one paragraph).
+License: GPL (>=3)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    dplyr (>= 1.0.0),
+    ggplot2 (>= 3.0.0),
+    lubridate,
+    tidyr
