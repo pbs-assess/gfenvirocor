@@ -24,7 +24,9 @@ if (shortlist) {
   dvs <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 }
 
-ts <- readRDS(paste0("stock-specific/",spp,"/output/mcmc/", scenario, "/df1.RData"))
+ts <- readRDS(paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
+
+
 data <- left_join(ts, dvs) |> filter(year >= start_year & year <= end_year)
 data <- na.omit(data) # not needed but kept as a precaution
 
@@ -35,9 +37,10 @@ for (i in seq_along(sort(unique(data$type)))) {
   # for(i in 1) {
   dat <- filter(data, var_names == sort(unique(data$type))[[i]])
 
+  print(dat$var_names[1])
   # retrieve a bunch of `.d` data frames above as MCMC samples from 'response' posterior:
   dd <- purrr::map_dfr(seq_len(n_draws), \(j) {
-    .draw <- readRDS(paste0("stock-specific/",spp,"/output/mcmc/", scenario, "/df", j, ".RData"))
+    .draw <- readRDS(paste0("stock-specific/",spp,"/output/mcmc/",scenario,"/df",j,".RData"))
     .d <- left_join(.draw, dvs) |> filter(year >= start_year & year <= end_year)
     .d <- na.omit(.d)
     .d <- .d |>
@@ -205,9 +208,11 @@ if (shortlist) {
 # }
 
 
+
 lapply(m, get_ess)
 lapply(m, max_rhat)
 
+p <- p %>% discard(is.null)
 
 y_lab_big <- ggplot() +
   annotate(
@@ -238,12 +243,12 @@ y_lab_big <- ggplot() +
 if (shortlist) {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
-    length(unique(data$type)), "-short2.png"
+    length(unique(data$type)), "-short.png"
   ), width = 9, height = 6)
 } else {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
-    length(unique(data$type)), "2.png"
+    length(unique(data$type)), ".png"
   ), width = 10, height = 10)
 }
 
@@ -267,7 +272,7 @@ if (!shortlist) {
 
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
-    length(unique(data$type)), "-2.png"
+    length(unique(data$type)), ".png"
   ), width = 8, height = 3)
 
   coefs2 |>
@@ -285,11 +290,11 @@ if (!shortlist) {
 
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
-    length(unique(data$type)), "-just-poly2.png"
+    length(unique(data$type)), "-just-poly.png"
   ), width = 5, height = 3)
 }
 
-saveRDS(dd_sum, "stock-specific/",spp,"/output/rdev-uncertainty-range.rds")
+saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
 
 
 # if (shortlist) {

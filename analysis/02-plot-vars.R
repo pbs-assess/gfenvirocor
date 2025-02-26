@@ -1,4 +1,6 @@
 # plot environmental variables
+library(tidyverse)
+theme_set(ggsidekick::theme_sleek())
 
 scale_fact <- 20
 
@@ -8,7 +10,7 @@ ragg::agg_png(
   height = length(unique(dvs$type))*2,
   units = "in", res = 300, scaling = 1)
 
-check_correlations(dvs)
+check_correlations(ds)
 dev.off()
 
 # ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png"),
@@ -22,7 +24,7 @@ ragg::agg_png(
   height = length(unique(dvp$type))*2,
   units = "in", res = 300, scaling = 1)
 
-check_correlations(dvp)
+check_correlations(dp)
 
 dev.off()
 
@@ -30,13 +32,13 @@ dev.off()
 #        width = length(unique(dvp$type))*1.75,
 #        height = length(unique(dvp$type))*1.75)
 
-check_correlations(dvj)
+check_correlations(dj)
 
 ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-juv.png"),
        width = length(unique(dvj$type))*2,
        height = length(unique(dvj$type))*2)
 
-check_correlations(dvc)
+check_correlations(dc)
 
 ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
        width = length(unique(dvc$type))*2,
@@ -46,23 +48,22 @@ ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
 
 
 # Explore covariates ----
-
-(ev1 <- dvs |>
+(ev1 <- ds |>
    # filter(year >= 1990) |>
    # mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
    ggplot() +
    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-   scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvs$type)), name = "Paired")) +
+   # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvs$type)), name = "Paired")) +
    scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
    theme(
      axis.title = element_blank(),
      legend.justification=c(0, 1)) +
    labs(x = "Year", y = "Standardized index", colour = "Spawning"))
 
-(ev2 <- dvp |>
+(ev2 <- dp |>
     ggplot() +
     geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvp$type)), name = "Paired")) +
+    # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvp$type)), name = "Paired")) +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title.y = element_blank(),
@@ -71,10 +72,10 @@ ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
 ev2
 
 
-(ev3 <- dvj |>
+(ev3 <- dj |>
     ggplot() +
     geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvj$type)), name = "Paired"))  +
+    # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvj$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title.y = element_blank(),
@@ -84,10 +85,10 @@ ev3
 
 
 
-(ev4 <- dvc |>
+(ev4 <- dc |>
     ggplot() +
     geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvc$type)), name = "Paired"))  +
+    # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvc$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title.y = element_blank(),
