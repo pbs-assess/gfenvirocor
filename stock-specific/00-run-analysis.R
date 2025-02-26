@@ -1,10 +1,13 @@
 # Prep data and folders for stock specific condition analysis
 library(tidyverse)
+library(pacea)
 devtools::load_all()
 
 
 species <- "Lingcod"
-final_year <- 2025
+stock <- "Coastwide"
+# final_year <- 2025
+set_utm_crs <- 32609
 
 spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
 
@@ -16,10 +19,20 @@ dir.create(paste0("stock-specific/", spp, "/figs/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/output/"), showWarnings = FALSE)
 
 # prep mcmc data
+out_sum <- readRDS(paste0("stock-specific/",spp,"/data/sum.rdata"))
+out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
 
+n_draws <- 100
+format_mcmc(out_mcmc, species, stock, samples = n_draws)
 
-# out<- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
+# little environmental and age data pre-1995
+year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
+start_year <- 1978 # first year with significant age data
+end_year <- year_range[2]
+
+# shortlist <- TRUE
+shortlist <- FALSE
 
 # define depths of interest ----
 # depth ranges for Love 2011
@@ -56,7 +69,7 @@ summer_grid <- new_grid |> filter(depth_min >= summer_min & depth_max <= summer_
 # plot(summer_grid)
 
 # this just gets a bunch of annual averages
-# source("analysis/01-get-all-enviro-vars.R")
+# source("analysis/xx-get-all-enviro-vars.R")
 load("data/oisst_month_grid26.rda")
 
 # which community variables are we interested in
@@ -66,7 +79,7 @@ euphausids <- NULL
 herring_stocks <- c("HG", "PRD", "CC", "WCVI")
 copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Island Shelf")
 
-source("analysis/02-get-community-vars.R")
+source("analysis/01-get-community-vars.R")
 
 spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
 spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
@@ -90,9 +103,9 @@ pelagic_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (
 # cope.ss.s <- extract_enviro_var(cops.ss.south, "Southern Copepods (South VI)")
 # cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Subarctic copepods (South VI)")
 
-cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Boreal Copepods (VI shelf)")
-cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Southern Copepods (VI shelf)")
-cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Subarctic copepods (VI shelf)")
+cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - Boreal (VI shelf)")
+cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - Southern (VI shelf)")
+cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - Subarctic (VI shelf)")
 
 
 juv_pdo <- extract_enviro_var(pdo, "PDO (Jun-Dec)", juv_months)
@@ -173,175 +186,30 @@ dvc <- bind_rows(
 
 saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
 
-scale_fact <- 20
 
-ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png"),
-  width = length(unique(dvs$type))*2,
-  height = length(unique(dvs$type))*2,
-  units = "in", res = 300, scaling = 1)
+length(sort(unique(data$type)))
 
-check_correlations(dvs)
-dev.off()
+if (shortlist) {
+  colours <- c(5, 3, 2, 7, 8, 6)
+  pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
+} else {
+  colours <- c(11, 5, 12, 3, 2, 1, 4, 9, 10, 7, 8, 6)
+  pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
+  # plot(1:length(pal), pch = 20, cex = 4, col = pal)
+  # change yellow to be more visible
+  pal[11] <- "#E5E74C"
+  # plot(1:length(pal), pch = 20, cex = 4, col = pal)
+}
 
-# ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png"),
-#        width = length(unique(dvs$type))*2,
-#        height = length(unique(dvs$type))*2)
+source("analysis/02-plot-vars.R")
 
-
-ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
-  width = length(unique(dvp$type))*1.75,
-  height = length(unique(dvp$type))*1.75,
-  units = "in", res = 300, scaling = 1)
-
-check_correlations(dvp)
-
-dev.off()
-
-# ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
-#        width = length(unique(dvp$type))*1.75,
-#        height = length(unique(dvp$type))*1.75)
-
-check_correlations(dvj)
-
-ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-juv.png"),
-       width = length(unique(dvj$type))*2,
-       height = length(unique(dvj$type))*2)
-
-check_correlations(dvc)
-
-ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
-       width = length(unique(dvc$type))*2,
-       height = length(unique(dvc$type))*2)
+source("analysis/03-correlations-w-recruitment-brms.R")
 
 
 
-
-# Explore covariates ----
-
-(ev1 <- bind_rows(pdoA, oniA, npgoA) |>
-   filter(year >= 1990) |>
-   mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
-   ggplot() +
-   geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-   scale_colour_manual(values = RColorBrewer::brewer.pal(n = 8, name = "Paired")[c(1,2,8)]) +
-   scale_x_continuous(limits = c(1990,final_year), breaks = seq(1990, final_year, 5) ) +
-   theme(
-     axis.title = element_blank(),
-     legend.justification=c(0, 1)) +
-   labs(x = "Year", y = "Standardized index", colour = "Climate Indices"))
-
-# ggsave("figs/climate-indices.png", width = 4, height = 2)
-
-
-(ev2 <- bind_rows(sstA, ppA, ptA, sphA, so2A, ssaA, sstoiA) |>
-    ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = 10, name = "Paired")[c(3,4,2,10,8,6,5)])  +
-    scale_x_continuous(limits = c(1990,final_year), breaks = seq(1990, final_year, 5) ) +
-    theme(
-      axis.title.y = element_blank(),
-      legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "BCCM Surface Variables"))
-ev2
-
-
-(ev3 <- bind_rows(tobA, bphA, o2A, bsaA) |>
-    ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = 10, name = "Paired")[c(2,10,8,6)])  +
-    scale_x_continuous(limits = c(1990,final_year), breaks = seq(1990, final_year, 5) ) +
-    theme(
-      axis.title.y = element_blank(),
-      legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "BCCM Sea Floor"))
-ev3
-
-y_lab_big <- ggplot() +
-  annotate(geom = "text", x = 1, y = 1, size = 4,
-           colour = "grey30",
-           label = "Standardized annual values", angle = 90) +
-  coord_cartesian(clip = "off")+
-  theme_void()
-
-
-y_lab_big + (ev1/ev2) + patchwork::plot_layout(width = c(0.1,1))
-
-ggsave(paste0("stock-specific/",spp,"/figs/ev-indices.png"), width =7.5, height = 4.5)
-
-
-# Explore covariates ----
-
-(ev1 <- bind_rows(pdoA,  npgoA) |>
-   filter(year >= 1990) |>
-   mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
-   ggplot() +
-   geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-   scale_colour_manual(values = RColorBrewer::brewer.pal(n = 8, name = "Paired")[c(2,8)]) +
-   scale_x_continuous(limits = c(1990,final_year), breaks = seq(1990, final_year, 5) ) +
-   theme(
-     axis.title = element_blank(),
-     legend.justification=c(0, 1)) +
-   labs(x = "Year", y = "Standardized index", colour = "Climate Indices"))
-
-# ggsave("figs/climate-indices.png", width = 4, height = 2)
-
-
-(ev2 <- bind_rows(sstA, tobA, ppA, ptA, o2A,) |>
-    ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-    scale_colour_manual(values = RColorBrewer::brewer.pal(n = 10, name = "Paired")[c(3,4,9,5,6)])  +
-    scale_x_continuous(limits = c(1990,final_year), breaks = seq(1990, final_year, 5) ) +
-    theme(
-      axis.title.y = element_blank(),
-      legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "BCCM Variables"))
-ev2
-
-
-y_lab_big <- ggplot() +
-  annotate(geom = "text", x = 1, y = 1, size = 4,
-           colour = "grey30",
-           label = "Standardized annual values", angle = 90) +
-  coord_cartesian(clip = "off")+
-  theme_void()
-
-y_lab_big + (ev1/ev2) + patchwork::plot_layout(width = c(0.1,1))
-
-ggsave(paste0("stock-specific/",spp,"/figs/ev-indices-subset.png"), width =6, height = 4)
-
-
-
-# Plot correlations -----
-library(GGally)
-
-dw <- bind_rows(pdoA, npgoA, sstA, tobA, ppA, ptA, o2A) |>
-  select(year, type, value) |>
-  pivot_wider(names_from = type, values_from = value)
-
-ggpairs(dw, columns = c(2:8),
-        upper = list(continuous = wrap(cor_func, method = 'spearman', symbol = expression('\u03C1 ='))),
-        progress = FALSE)
-
-
-ggsave(paste0("stock-specific/",spp,"/figs/clim-variables-correlations.png"), width = 11, height = 11)
-
-
-
-
-
-
-
-
-
-## set major areas ----
-## this defines the "stock"
-## here using all canadian waters
-major_areas <- c("01", "03", "04", "05", "06", "07", "08", "09",
-                 "11", # bc offshore waters
-                 "71","72","73","74","75","76","77","99")
-
-
-set_utm_crs <- 32609
-
+# ## set major areas ----
+# ## this defines the "stock"
+# ## here using all canadian waters
+# major_areas <- c("01", "03", "04", "05", "06", "07", "08", "09",
+#                  "11", # bc offshore waters
+#                  "71","72","73","74","75","76","77","99")
