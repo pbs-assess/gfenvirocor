@@ -6,8 +6,8 @@ scale_fact <- 20
 
 ragg::agg_png(
   paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png"),
-  width = length(unique(dvs$type))*2,
-  height = length(unique(dvs$type))*2,
+  width = length(unique(ds$type))*2,
+  height = length(unique(ds$type))*2,
   units = "in", res = 300, scaling = 1)
 
 check_correlations(ds)
@@ -20,8 +20,8 @@ dev.off()
 
 ragg::agg_png(
   paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
-  width = length(unique(dvp$type))*2,
-  height = length(unique(dvp$type))*2,
+  width = length(unique(dp$type))*2,
+  height = length(unique(dp$type))*2,
   units = "in", res = 300, scaling = 1)
 
 check_correlations(dp)
@@ -29,40 +29,47 @@ check_correlations(dp)
 dev.off()
 
 # ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
-#        width = length(unique(dvp$type))*1.75,
-#        height = length(unique(dvp$type))*1.75)
+#        width = length(unique(dp$type))*1.75,
+#        height = length(unique(dp$type))*1.75)
 
 check_correlations(dj)
 
 ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-juv.png"),
-       width = length(unique(dvj$type))*2,
-       height = length(unique(dvj$type))*2)
+       width = length(unique(dj$type))*2,
+       height = length(unique(dj$type))*2)
 
-check_correlations(dc)
+check_correlations(dvc)
 
 ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
        width = length(unique(dvc$type))*2,
        height = length(unique(dvc$type))*2)
 
 
-
-
 # Explore covariates ----
 (ev1 <- ds |>
+   left_join(colkey) |>
+   # mutate(colour = factor(colour, levels = unique(colkey$colour))) |>
+   mutate(
+     type2 = as.numeric(as.factor(type)),
+     colour = fct_reorder(colour, type2)) |>
    # filter(year >= 1990) |>
    # mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
    ggplot() +
-   geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
-   # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvs$type)), name = "Paired")) +
+   geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
+   scale_colour_identity(labels = sort(unique(ds$type)), guide="legend") +
    scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
    theme(
      axis.title = element_blank(),
      legend.justification=c(0, 1)) +
    labs(x = "Year", y = "Standardized index", colour = "Spawning"))
 
-(ev2 <- dp |>
+(ev2 <- dp |> left_join(colkey) |>
+    mutate(
+      type2 = as.numeric(as.factor(type)),
+      colour = fct_reorder(colour, type2)) |>
     ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
+      geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
+      scale_colour_identity(labels = sort(unique(dp$type)), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvp$type)), name = "Paired")) +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
@@ -72,9 +79,13 @@ ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
 ev2
 
 
-(ev3 <- dj |>
+(ev3 <- dj |> left_join(colkey) |>
+    mutate(
+      type2 = as.numeric(as.factor(type)),
+      colour = fct_reorder(colour, type2)) |>
     ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
+    geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
+    scale_colour_identity(labels = sort(unique(dj$type)), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvj$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
@@ -84,10 +95,14 @@ ev2
 ev3
 
 
-
-(ev4 <- dc |>
+(ev4 <- dvc |>
+    left_join(colkey) |>
+    mutate(
+      type2 = as.numeric(as.factor(type)),
+      colour = fct_reorder(colour, type2)) |>
     ggplot() +
-    geom_line(aes(year, value, colour = type), alpha = 0.7, linewidth = 1) +
+    geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
+    scale_colour_identity(labels = sort(unique(dvc$type)), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvc$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(

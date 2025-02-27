@@ -18,12 +18,14 @@ dir.create(paste0("stock-specific/", spp, "/output/"), showWarnings = FALSE)
 
 ## Prep SS3 outputs ----
 out_sum <- readRDS(paste0("stock-specific/",spp,"/data/sum.rdata"))
-format_ss3_summary(out_sum, species, stock)
-
 n_draws <- 100
 scenario <- out_sum$model_name
-out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
-format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
+
+
+## only run if first time
+# format_ss3_summary(out_sum, species, stock)
+# out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
+# format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
 
 ## Set spatiotemporal scales ----
 
@@ -114,11 +116,11 @@ juv_t <- extract_enviro_var(bccm_bottom_temperature(),  "Sea floor temperature (
 juv_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jun-Dec)", juv_months, juv_grid)
 juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Sea floor salinity (Jun-Dec)", juv_months, juv_grid)
 juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
-
+herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 
 ds <- bind_rows(
   spawn_pdo
-  # ,spawn_npgo
+  ,spawn_npgo
   ,spawn_o2
   # ,spawn_t
   ,spawn_sst
@@ -154,6 +156,7 @@ dj <- bind_rows(
   ,juv_sst
   ,juv_s
   ,juv_herr
+  ,herr_ssb
 )
 
 dvr <- bind_rows(ds,dp,dj)
@@ -178,13 +181,13 @@ herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 
 dvc <- bind_rows(
   cond_pdo
-  ,cond_npgo
+  # ,cond_npgo
   ,cond_npgo1
   ,cond_o2
   ,cond_t
   ,cond_sstoi
   ,herr_ssb
-  ,juv_herr
+  # ,juv_herr
 )
 
 saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
@@ -192,13 +195,37 @@ saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds")
 
 ## Choose plot options and run models ----
 
+dvr <- readRDS( paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
+
+dvc <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
 # shortlist <- TRUE
 shortlist <- FALSE
 
-nvars <- length(sort(unique(dvr$type)))
-pal <- scales::hue_pal()(nvars)
+nvars <- length(sort(unique(c(dvr$type, dvc$type))))
 colours <- c(seq(1:nvars))
+colkey <- data.frame(type = sort(unique(c(dvr$type, dvc$type))), id = colours)
 
+colkey[grepl("NPGO", colkey$type),]$id <- min(colkey[grepl("NPGO", colkey$type),]$id)
+colkey[grepl("PDO", colkey$type),]$id <- min(colkey[grepl("PDO", colkey$type),]$id)
+colkey[grepl("O2", colkey$type),]$id <- min(colkey[grepl("O2", colkey$type),]$id)
+colkey[grepl("SST", colkey$type),]$id <- min(colkey[grepl("SST", colkey$type),]$id)
+colkey[grepl("salinity", colkey$type),]$id <- min(colkey[grepl("salinity", colkey$type),]$id)
+colkey[grepl("temperature", colkey$type),]$id <- min(colkey[grepl("temperature", colkey$type),]$id)
+
+length(unique(colkey$id))
+# pal <- RColorBrewer::brewer.pal(n = length(unique(colkey$id)), name = "Paired")
+# pal[11] <- "#E5E74C"
+pal <- scales::hue_pal()(length(unique(colkey$id)))
+
+plot(1:length(pal), pch = 20, cex = 4, col = pal)
+colours <- data.frame(colour = pal, id = rev(unique(colkey$id)))
+
+colkey <- left_join(colkey, colours)
+
+plot(1:length(colkey$type), pch = 20, cex = 4, col = colkey$colour)
+#
+# pal <- scales::hue_pal()(nvars)
+#
 # if (shortlist) {
 #   colours <- c(5, 3, 2, 7, 8, 6)
 #   pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
@@ -207,7 +234,6 @@ colours <- c(seq(1:nvars))
 #   pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
 #   # plot(1:length(pal), pch = 20, cex = 4, col = pal)
 #   # change yellow to be more visible
-#   pal[11] <- "#E5E74C"
 #   # plot(1:length(pal), pch = 20, cex = 4, col = pal)
 # }
 
@@ -230,9 +256,9 @@ which_cond_model <- "2025-02"
 start_year <- 2002
 end_year <- 2024
 
-nvars <- length(sort(unique(dvc$type)))
-pal <- scales::hue_pal()(nvars)
-colours <- c(seq(1:nvars))
+# nvars <- length(sort(unique(dvc$type)))
+# pal <- scales::hue_pal()(nvars)
+# colours <- c(seq(1:nvars))
 
 source("analysis/04-correlations-w-condition-brms.R")
 

@@ -33,6 +33,8 @@ data <- na.omit(data) # not needed but kept as a precaution
 data$response <- data[["rdev"]]
 data$var_names <- data[["type"]]
 
+# n_draws <- 1
+
 for (i in seq_along(sort(unique(data$type)))) {
   # for(i in 1) {
   dat <- filter(data, var_names == sort(unique(data$type))[[i]])
@@ -81,7 +83,7 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   summary(m[[i]])
 
-  if (max(rhat(m[[i]])) > 1.01) {
+  if (max(rhat(m[[i]])) >= 1.02) {
     p[[i]] <- NULL
   } else {
     fits <- dd |>
@@ -122,28 +124,32 @@ for (i in seq_along(sort(unique(data$type)))) {
     nd$lwr2 <- apply(pred2, 2, quantile, probs = 0.025)
     nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
 
+    # browser()
+    # set_colour <- pal[colours[i]]
+    set_colour <- colkey[colkey$type == sort(unique(data$type))[[i]],]$colour
+
 
     (p[[i]] <- ggplot() +
       # a place holder to set the axes correctly
       geom_linerange(
         data = dd_sum, aes(value_raw, ymin = min, ymax = max),
-        colour = pal[colours[i]]
+        colour = set_colour
       ) +
       geom_point(
         data = dat, aes(value_raw, response),
-        colour = pal[colours[i]]
+        colour = set_colour
       ) +
       geom_line(
         data = nd, aes(value_raw, est),
-        colour = pal[colours[i]]
+        colour = set_colour
       ) +
       geom_ribbon(
         data = nd, aes(value_raw, ymin = lwr, ymax = upr),
-        alpha = 0.5, fill = pal[colours[i]]
+        alpha = 0.5, fill = set_colour
       ) +
       geom_ribbon(
         data = nd, aes(value_raw, ymin = lwr2, ymax = upr2),
-        alpha = 0.25, fill = pal[colours[i]]
+        alpha = 0.25, fill = set_colour
       ) +
       labs(
         x = unique(dd$var_names), y = "",
@@ -235,7 +241,8 @@ y_lab_big <- ggplot() +
   plot_annotation(tag_levels = list(c(
     "", "A", "B", "C", "D",
     "E", "F", "G", "H", "I",
-    "J", "K", "L"
+    "J", "K", "L", "M", "N",
+    "O", "P", "Q", "R", "S", "T", "U"
   ))) +
   plot_layout(widths = c(0.05, 2)))
 )
@@ -256,15 +263,18 @@ if (!shortlist) {
   coefs2 <- do.call(rbind, coefs)
   head(coefs2)
 
-  g <- coefs2 |>
+  g <- coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
     pivot_longer(1:4, values_to = "est", names_to = "coef") |>
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
-    geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
+    geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+    # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
     coord_flip() +
-    scale_fill_manual(values = pal[colours]) +
-    scale_colour_manual(values = pal[colours]) +
+    scale_fill_identity() +
+    scale_colour_identity() +
+    # scale_fill_manual(values = pal[colours]) +
+    # scale_colour_manual(values = pal[colours]) +
     facet_grid(~coef, scales = "free_x") +
     labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
     theme(legend.position = "none")
@@ -273,17 +283,20 @@ if (!shortlist) {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
     length(unique(data$type)), ".png"
-  ), width = 8, height = 3)
+  ), width = 8, height = 4)
 
-  coefs2 |>
+  coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
     pivot_longer(1:2, values_to = "est", names_to = "coef") |>
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
-    geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
+    geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+    # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
     coord_flip() +
-    scale_fill_manual(values = pal[colours]) +
-    scale_colour_manual(values = pal[colours]) +
+    scale_fill_identity() +
+    scale_colour_identity() +
+    # scale_fill_manual(values = pal[colours]) +
+    # scale_colour_manual(values = pal[colours]) +
     facet_grid(~coef, scales = "free_x") +
     labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
     theme(legend.position = "none")
@@ -291,7 +304,7 @@ if (!shortlist) {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
     length(unique(data$type)), "-just-poly.png"
-  ), width = 5, height = 3)
+  ), width = 5, height = 4)
 }
 
 saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))

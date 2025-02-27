@@ -63,7 +63,6 @@ p <- list()
 m <- list()
 coefs <- list()
 
-n_draws <- 100
 colours <- c(
   "#fde725",
   "#21918c"
@@ -461,6 +460,9 @@ for (i in seq_along(sort(unique(data$var_names)))) {
   # for(i in 1) {
   dat0 <- filter(data, var_names == sort(unique(data$var_names))[[i]])
 
+  # set_colour <- pal[colours[i]]
+  set_colour <- colkey[colkey$type == sort(unique(data$type))[[i]],]$colour
+
   for (g in seq_along(sort(unique(data$group)))) {
     idx <- length(unique(data$group)) * (i - 1) + g
 
@@ -527,7 +529,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     summary(m[[idx]])
 
 
-    if (max(rhat(m[[idx]])) > 1.01) {
+    if (max(rhat(m[[idx]])) > 1.02) {
       p[[idx]] <- NULL
     } else {
       nd <- data.frame(value = seq(min(dat$value), max(dat$value), length.out = 200), time = NA)
@@ -574,11 +576,11 @@ for (i in seq_along(sort(unique(data$var_names)))) {
           # a place holder to set the axes correctly
           geom_linerange(
             data = dd_sum, aes(value_raw, ymin = min, ymax = max),
-            colour = pal[colours[i]]
+            colour = set_colour
           ) +
           geom_point(
             data = dat, aes(value_raw, response),
-            colour = pal[colours[i]]
+            colour = set_colour
           ))
 
         # combine coefs:
@@ -613,7 +615,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
         nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
 
         (p[[idx]] <- ggplot() +
-          geom_point(data = dat, aes(value_raw, response), pal[colours[i]]))
+          geom_point(data = dat, aes(value_raw, response), set_colour))
 
         # combine coefs:
         a <- as.data.frame(m[[i]])
@@ -624,15 +626,15 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       (p[[idx]] <- p[[idx]] +
         geom_line(
           data = nd, aes(value_raw, est),
-          colour = RColorBrewer::brewer.pal(n = 12, name = "Paired")[colours[i]]
+          colour = set_colour
         ) +
         geom_ribbon(
           data = nd, aes(value_raw, ymin = lwr, ymax = upr),
-          alpha = 0.5, fill = pal[colours[i]]
+          alpha = 0.5, fill = set_colour
         ) +
         geom_ribbon(
           data = nd, aes(value_raw, ymin = lwr2, ymax = upr2),
-          alpha = 0.25, fill = pal[colours[i]]
+          alpha = 0.25, fill = set_colour
         ) +
         labs(
           x = unique(dat$var_names), y = "",
@@ -662,7 +664,6 @@ for (i in seq_along(sort(unique(data$var_names)))) {
 }
 
 
-
 saveRDS(p, paste0(
   "stock-specific/",spp,"/output/cond-enviro-corr-plot-list-poly-", n_draws, "-draws-",
   length(unique(data$var_names)), ".rds"
@@ -681,6 +682,9 @@ p <- readRDS(paste0(
   "stock-specific/",spp,"/output/cond-enviro-corr-plot-list-poly-", n_draws, "-draws-",
   length(unique(data$var_names)), ".rds"
 ))
+
+
+p <- p %>% discard(is.null)
 
 # check convergence
 lapply(m, max_rhat)
@@ -714,7 +718,7 @@ ggsave(paste0(
 coefs2 <- do.call(rbind, coefs)
 head(coefs2)
 
-coefs2 |>
+coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   pivot_longer(1:4, values_to = "est", names_to = "coef") |>
   mutate(
     group = factor(group, levels = c("Immature condition", "Male condition", "Female condition"))
@@ -722,10 +726,13 @@ coefs2 |>
   mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
-  geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
+  geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+  # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
   coord_flip() +
-  scale_fill_manual(values = pal[colours]) +
-  scale_colour_manual(values = pal[colours]) +
+  scale_fill_identity() +
+  scale_colour_identity() +
+  # scale_fill_manual(values = pal[colours]) +
+  # scale_colour_manual(values = pal[colours]) +
   facet_grid(group ~ coef, scales = "free") +
   labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
   theme(legend.position = "none")
