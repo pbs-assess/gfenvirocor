@@ -529,9 +529,12 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     summary(m[[idx]])
 
 
-    if (max(rhat(m[[idx]])) > 1.02) {
-      p[[idx]] <- NULL
+    if (max(rhat(m[[idx]])) > 1.01) {
+      set_alpha <- 0.2
     } else {
+      set_alpha <- 1
+    }
+
       nd <- data.frame(value = seq(min(dat$value), max(dat$value), length.out = 200), time = NA)
       using_posteriors <- TRUE
       if (using_posteriors) {
@@ -626,6 +629,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       (p[[idx]] <- p[[idx]] +
         geom_line(
           data = nd, aes(value_raw, est),
+          alpha = set_alpha,
           colour = set_colour
         ) +
         geom_ribbon(
@@ -650,7 +654,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       if (!(idx %in% c(seq(from = 2, to = length(unique(data$group)) * length(unique(data$var_names)), by = 3)))) {
         p[[idx]] <- p[[idx]] + theme(axis.title.x = element_blank())
       }
-    }
+    # }
 
     # combine coefs:
     coefs[[idx]] <- fits |> purrr::map_dfr(\(x) {
@@ -712,7 +716,7 @@ y_lab_big <- ggplot() +
 ggsave(paste0(
   "stock-specific/",spp,"/figs/cond-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
-), width = 6, height = 10)
+), width = 7, height = 10)
 
 
 coefs2 <- do.call(rbind, coefs)
@@ -726,7 +730,9 @@ coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
-  geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+  geom_violin(aes(forcats::fct_rev(var_names), est,
+                  fill = colour, colour = colour),
+              linewidth =0.1, alpha = 0.7) +
   # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
   coord_flip() +
   scale_fill_identity() +
@@ -750,7 +756,8 @@ coefs2 |>
   mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
-  geom_violin(aes(forcats::fct_rev(group), est, fill = group), colour = NA, alpha = 0.7) +
+  geom_violin(aes(forcats::fct_rev(group), est, fill = group, colour = group),
+              linewidth =0.1, alpha = 0.7) +
   coord_flip() +
   scale_colour_viridis_d() +
   scale_fill_viridis_d() +

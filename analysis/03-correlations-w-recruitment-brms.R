@@ -83,9 +83,13 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   summary(m[[i]])
 
-  if (max(rhat(m[[i]])) >= 1.02) {
-    p[[i]] <- NULL
-  } else {
+  # if (max(rhat(m[[i]])) >= 1.02) {
+    if (max(rhat(m[[i]])) > 1.01) {
+      set_alpha <- 0.2
+    } else {
+      set_alpha <- 1
+    }
+  # } else {
     fits <- dd |>
       split(dd$original_iter) |>
       lapply(do_fit)
@@ -141,6 +145,7 @@ for (i in seq_along(sort(unique(data$type)))) {
       ) +
       geom_line(
         data = nd, aes(value_raw, est),
+        alpha = set_alpha,
         colour = set_colour
       ) +
       geom_ribbon(
@@ -165,7 +170,7 @@ for (i in seq_along(sort(unique(data$type)))) {
       data.frame(poly1 = a$b_polyvalue21, poly2 = a$b_polyvalue22, p = a$`ar[1]`, sigma = a$sigma)
     })
     coefs[[i]]$var_names <- sort(unique(data$var_names))[[i]]
-  }
+  # }
 }
 
 if (shortlist) {
@@ -256,7 +261,7 @@ if (shortlist) {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
     length(unique(data$type)), ".png"
-  ), width = 10, height = 10)
+  ), width = 9, height = 14)
 }
 
 if (!shortlist) {
@@ -268,7 +273,8 @@ if (!shortlist) {
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
-    geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+    geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour,
+                    colour = colour), linewidth =0.1, alpha = 0.7) +
     # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
     coord_flip() +
     scale_fill_identity() +
@@ -290,7 +296,11 @@ if (!shortlist) {
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
-    geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour, colour = colour), alpha = 0.7) +
+    geom_violin(aes(forcats::fct_rev(var_names), est,
+                    colour = colour,
+                    fill = colour),
+                linewidth =0.1,
+                alpha = 0.7) +
     # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
     coord_flip() +
     scale_fill_identity() +
