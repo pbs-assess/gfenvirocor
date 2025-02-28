@@ -103,6 +103,7 @@ cops.ss.subarctic <- select(cops.ss, year, month, value = Cops.subarctic)
 
     cops.shelf.boreal <- select(cops.shelf, year, month, value = Cops.boreal)
     cops.shelf.south <- select(cops.shelf, year, month, value = Cops.south)
+    cops.shelf.nonarctic <- cops.shelf |> mutate(value = Cops.south + Cops.boreal) |> select(year, month, value)
     cops.shelf.subarctic <- select(cops.shelf, year, month, value = Cops.subarctic)
   }
 }

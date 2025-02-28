@@ -80,8 +80,11 @@ copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Islan
 
 source("analysis/01-get-community-vars.R")
 
-spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
-spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
+pdo0 <- extract_enviro_var(pdo, "PDO (current year)", c(spawning_months, pelagic_months, juv_months))
+npgo0 <- extract_enviro_var(npgo, "NPGO (current year)", c(spawning_months, pelagic_months, juv_months))
+npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)", c(spawning_months, pelagic_months, juv_months)) |> mutate(year = year +1)
+# spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
+# spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
 spawn_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Jan-Mar)", spawning_months, spawn_grid)
 spawn_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Jan-Mar)", spawning_months, spawn_grid)
 spawn_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jan-Mar)", spawning_months, spawn_grid)
@@ -99,42 +102,48 @@ pelagic_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (
 # cope.ns.b <- extract_enviro_var(cops.ns.boreal, "Boreal Copepods (North VI)")
 # cope.ns.s <- extract_enviro_var(cops.ns.south, "Southern Copepods (North VI)")
 # cope.ns.n <- extract_enviro_var(cops.ns.subarctic, "Subarctic copepods (North VI)")
-# cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Boreal Copepods (South VI)")
-# cope.ss.s <- extract_enviro_var(cops.ss.south, "Southern Copepods (South VI)")
-# cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Subarctic copepods (South VI)")
+cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Copepods - Boreal (South VI)")
+cope.ss.s <- extract_enviro_var(cops.ss.south, "Copepods - Southern (South VI)")
+cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Copepods - Subarctic (South VI)")
 
 cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - Boreal (VI shelf)")
 cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - Southern (VI shelf)")
+
+cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - non-subarctic (VI shelf)")
 cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - Subarctic (VI shelf)")
 
 
-juv_pdo <- extract_enviro_var(pdo, "PDO (Jun-Dec)", juv_months)
-juv_npgo <- extract_enviro_var(npgo, "NPGO (Jun-Dec)", juv_months)
-npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)") |> mutate(year = year +1)
+# juv_pdo <- extract_enviro_var(pdo, "PDO (Jun-Dec)", juv_months)
+# juv_npgo <- extract_enviro_var(npgo, "NPGO (Jun-Dec)", juv_months)
+
 juv_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Jun-Dec)", juv_months, juv_grid)
 juv_t <- extract_enviro_var(bccm_bottom_temperature(),  "Sea floor temperature (Jun-Dec)", juv_months, juv_grid)
 juv_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jun-Dec)", juv_months, juv_grid)
 juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Sea floor salinity (Jun-Dec)", juv_months, juv_grid)
 juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
+juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
 
 ds <- bind_rows(
-  spawn_pdo
-  ,spawn_npgo
+  npgo1
   ,spawn_o2
-  # ,spawn_t
-  ,spawn_sst
+  ,spawn_t
+  # ,spawn_sst
   ,spawn_s
+  # ,pdo0
+  # ,npgo0
+  # ,spawn_pdo
+  # ,spawn_npgo
 )
 
 dp <- bind_rows(
-  pelagic_pdo
-  # ,pelagic_npgo
-  ,pelagic_o2
+  pelagic_o2
   ,pelagic_sstoi
   ,pelagic_s
   ,pelagic_p
   ,pelagic_pp
+  ,pelagic_pdo
+  ,pelagic_npgo
   ## maybe drop these since more habitat in the south?
   # ,cope.ns.b
   # ,cope.ns.s
@@ -142,19 +151,20 @@ dp <- bind_rows(
   # ,cope.ss.b
   # ,cope.ss.s
   # ,cope.ss.n
-  ,cope.shelf.b
-  ,cope.shelf.s
+  # ,cope.shelf.b
+  # ,cope.shelf.s
   ,cope.shelf.n
+  ,cope.shelf.sb
 )
 
 dj <- bind_rows(
-  juv_pdo
+  # juv_pdo
   # ,juv_npgo
-  ,npgo1
-  ,juv_o2
-  # ,juv_t
-  ,juv_sst
+  juv_o2
+  ,juv_t
+  # ,juv_sst
   ,juv_s
+  # ,juv_pp
   ,juv_herr
   ,herr_ssb
 )
@@ -163,10 +173,20 @@ dvr <- bind_rows(ds,dp,dj)
 
 saveRDS(dvr, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
-# dvs2 <- bind_rows(
-#
-# )
-# saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
+dvs2 <- bind_rows(
+  spawn_o2
+  ,spawn_t
+  # ,spawn_sst
+  ,spawn_s
+  ,pelagic_pdo
+  ,pelagic_o2
+  ,pelagic_sstoi
+  ,pelagic_pp
+  ,cope.shelf.sb
+  # ,juv_herr
+  ,herr_ssb
+)
+saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
 
 cond_months <- c(4,5,6)
 
@@ -195,11 +215,10 @@ saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds")
 
 ## Choose plot options and run models ----
 
-dvr <- readRDS( paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
+dvr <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
 dvc <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
-# shortlist <- TRUE
-shortlist <- FALSE
+
 
 nvars <- length(sort(unique(c(dvr$type, dvc$type))))
 colours <- c(seq(1:nvars))
@@ -245,13 +264,15 @@ start_year <- 1975 # 1978 is first year with significant age data
 end_year <- year_range[2] # for recruitment analysis
 
 final_year <- 2025 # for variable plotting
-source("analysis/02-plot-vars.R")
+# source("analysis/02-plot-vars.R") # not working sour
 
+
+shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
+shortlist <- TRUE
+source("analysis/03-correlations-w-recruitment-brms.R")
 
-
-which_cond_model <- "2025-02"
 
 start_year <- 2002
 end_year <- 2024
@@ -260,7 +281,11 @@ end_year <- 2024
 # pal <- scales::hue_pal()(nvars)
 # colours <- c(seq(1:nvars))
 
-source("analysis/04-correlations-w-condition-brms.R")
+which_cond_model1 <- "2025-02"
+source("analysis/04-correlations-btw-rdev-condition-brms.R")
+
+which_cond_model2 <- "2025-02-ld0c"
+source("analysis/05-correlations-w-condition-brms.R")
 
 # ## set major areas
 # ## this defines the "stock"
