@@ -33,10 +33,10 @@ data <- na.omit(data) # not needed but kept as a precaution
 data$response <- data[["rdev"]]
 data$var_names <- data[["type"]]
 
-# n_draws <- 1
+# n_draws <- 100
 
 for (i in seq_along(sort(unique(data$type)))) {
-  # for(i in 1) {
+  # for(i in 1:3) {
   dat <- filter(data, var_names == sort(unique(data$type))[[i]])
 
   print(dat$var_names[1])
@@ -69,8 +69,9 @@ for (i in seq_along(sort(unique(data$type)))) {
   m[[i]] <- brm(
     bf(response ~ poly(value, 2) + ar(time = time)),
     data = dat,
-    iter = 1000,
-    chains = 3,
+    iter = 2000,
+    chains = 4,
+    control = list(adapt_delta = 0.9),
     prior =
       c(
         set_prior("normal(0, 1)", class = "ar"),
@@ -291,6 +292,8 @@ if (!shortlist) {
     length(unique(data$type)), ".png"
   ), width = 8, height = 4)
 
+}
+
   coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
     pivot_longer(1:2, values_to = "est", names_to = "coef") |>
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
@@ -311,11 +314,21 @@ if (!shortlist) {
     labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
     theme(legend.position = "none")
 
-  ggsave(paste0(
-    "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
-    length(unique(data$type)), "-just-poly.png"
-  ), width = 5, height = 4)
-}
+  if (shortlist) {
+    ggsave(paste0(
+      "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+      length(unique(data$type)), "-just-poly-short.png"
+    ), width = 5, height = 2.5)
+
+  } else {
+    ggsave(paste0(
+      "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+      length(unique(data$type)), "-just-poly.png"
+    ), width = 5, height = 4)
+
+  }
+
+
 
 saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
 

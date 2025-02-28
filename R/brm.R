@@ -12,8 +12,9 @@ do_fit <- function(dat, poly = TRUE) {
     tryCatch(brm(
       bf(response ~  poly(value, 2) + ar(time = time)),
       data = dat,
-      iter = 500,
+      iter = 1000,
       chains = 1,
+      control = list(adapt_delta = 0.9),
       prior =
         # c(set_prior("normal(0, 0.5)", class = "ar"),
         c(set_prior("normal(0, 1)", class = "ar"),
