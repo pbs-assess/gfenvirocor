@@ -90,31 +90,40 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     m[[i]] <- brm(
       bf(response ~ poly(value, 2) + ar(time = time)),
       data = dat,
-      iter = 1000,
-      chains = 3,
-      prior =
-        c(
-          set_prior("normal(0, 1)", class = "ar"),
-          set_prior("normal(0, 10)", class = "b"),
-          set_prior("student_t(3, 0, 2)", class = "sigma"),
-          set_prior("normal(0, 10)", class = "Intercept")
-        ),
+      iter = median_model_iter,
+      chains = median_chains,
+      control = control_list,
+      prior = set_priors,
+      # iter = 1000,
+      # chains = 3,
+      # control = list(adapt_delta = 0.9),
+      # prior =
+      #   c(
+      #     set_prior("normal(0, 1)", class = "ar"),
+      #     set_prior("normal(0, 10)", class = "b"),
+      #     set_prior("student_t(3, 0, 2)", class = "sigma"),
+      #     set_prior("normal(0, 10)", class = "Intercept")
+      #   ),
       backend = "cmdstan"
     )
   } else {
     m[[i]] <- brm(
       bf(response ~ value + ar(time = time)),
       data = dat,
-      iter = 2000,
-      chains = 4,
-      control = list(adapt_delta = 0.9),
-      prior =
-        c(
-          set_prior("normal(0, 1)", class = "ar"),
-          set_prior("normal(0, 10)", class = "b"),
-          set_prior("student_t(3, 0, 2)", class = "sigma"),
-          set_prior("normal(0, 10)", class = "Intercept")
-        ),
+      iter = median_model_iter,
+      chains = median_chains,
+      control = control_list,
+      prior = set_priors,
+      # iter = 2000,
+      # chains = 4,
+      # control = list(adapt_delta = 0.9),
+      # prior =
+      #   c(
+      #     set_prior("normal(0, 1)", class = "ar"),
+      #     set_prior("normal(0, 10)", class = "b"),
+      #     set_prior("student_t(3, 0, 2)", class = "sigma"),
+      #     set_prior("normal(0, 10)", class = "Intercept")
+      #   ),
       backend = "cmdstan"
     )
   }
@@ -174,11 +183,11 @@ for (i in seq_along(sort(unique(data$var_names)))) {
   if (poly) {
     fits <- dd |>
       split(dd$original_iter) |>
-      lapply(do_fit)
+      lapply(do_fit, control_list, set_priors)
   } else {
     fits <- dd |>
       split(dd$original_iter) |>
-      lapply(do_fit, poly = FALSE)
+      lapply(do_fit, control_list, set_priors, poly = FALSE)
   }
 
   nd <- data.frame(value = seq(min(dd$value), max(dd$value), length.out = 200), time = NA)
@@ -224,7 +233,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     ) +
     # this is median of simulation draws
     geom_point(
-      data = dd_sum, aes(value_new_med, response_new_med),
+      data = dd_sum, aes(value_new_med, response_new_med, alpha = time),
       colour = colours[[i]]
       # colour = "white"
     ) +

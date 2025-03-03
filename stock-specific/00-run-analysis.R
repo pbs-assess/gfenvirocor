@@ -1,6 +1,7 @@
 # Prep data and folders for stock specific condition analysis
 library(tidyverse)
 library(pacea)
+# library(brms)
 devtools::load_all()
 
 
@@ -21,14 +22,12 @@ out_sum <- readRDS(paste0("stock-specific/",spp,"/data/sum.rdata"))
 n_draws <- 100
 scenario <- out_sum$model_name
 
-
 ## only run if first time
-# format_ss3_summary(out_sum, species, stock)
-# out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
-# format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
+format_ss3_summary(out_sum, species, stock)
+out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
+format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
 
 ## Set spatiotemporal scales ----
-
 
 # define depths of interest
 # depth ranges for Love 2011
@@ -49,7 +48,7 @@ summer_max <- 278
 spawning_months <- c(1,2,3)
 pelagic_months <- c(4,5)
 juv_months <- c(6,7,8,9,10,11,12)
-condition_months_A <- spawning_months
+# condition_months_A <- spawning_months
 condition_months <- c(4,5,6)
 
 
@@ -83,21 +82,22 @@ source("analysis/01-get-community-vars.R")
 pdo0 <- extract_enviro_var(pdo, "PDO (current year)", c(spawning_months, pelagic_months, juv_months))
 npgo0 <- extract_enviro_var(npgo, "NPGO (current year)", c(spawning_months, pelagic_months, juv_months))
 npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)", c(spawning_months, pelagic_months, juv_months)) |> mutate(year = year +1)
-# spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
-# spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
+npgo2 <- extract_enviro_var(npgo, "NPGO (2 yrs prior)", c(spawning_months, pelagic_months, juv_months)) |> mutate(year = year +2)
+spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
+spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
 spawn_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Jan-Mar)", spawning_months, spawn_grid)
 spawn_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Jan-Mar)", spawning_months, spawn_grid)
 spawn_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jan-Mar)", spawning_months, spawn_grid)
 spawn_s <- extract_enviro_var(bccm_bottom_salinity(), "Sea floor salinity (Jan-Mar)", spawning_months, spawn_grid)
 
-pelagic_pdo <- extract_enviro_var(pdo, "PDO (Apr-May)", pelagic_months)
-pelagic_npgo <- extract_enviro_var(npgo, "NPGO (Apr-May)", pelagic_months)
+pelagic_pdo <- extract_enviro_var(pdo, "PDO (Jan-May)", c(spawning_months, pelagic_months))
+pelagic_npgo <- extract_enviro_var(npgo, "NPGO (Jan-May)", c(spawning_months, pelagic_months))
 pelagic_o2 <- extract_enviro_var(bccm_surface_oxygen(), "Surface O2 (Apr-May)", pelagic_months, sp_grid)
 # pelagic_sst <- extract_enviro_var(bccm_surface_temperature(), "SST (Apr-May)", pelagic_months, sp_grid)
 pelagic_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Apr-May)", pelagic_months, sp_grid)
 pelagic_s <- extract_enviro_var(bccm_surface_salinity(), "Surface salinity (Apr-May)", pelagic_months, sp_grid)
 pelagic_p <- extract_enviro_var(bccm_phytoplankton(), "Phytoplankton (Apr-May)", pelagic_months, sp_grid)
-pelagic_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Apr-May)", pelagic_months, sp_grid)
+
 
 # cope.ns.b <- extract_enviro_var(cops.ns.boreal, "Boreal Copepods (North VI)")
 # cope.ns.s <- extract_enviro_var(cops.ns.south, "Southern Copepods (North VI)")
@@ -122,18 +122,21 @@ juv_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jun-Dec)", juv_months, j
 juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Sea floor salinity (Jun-Dec)", juv_months, juv_grid)
 juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
-juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
+# juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
+# juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Current year)", c(spawning_months, pelagic_months), sp_grid)
+juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-Jun)", c(spawning_months, condition_months), juv_grid)
 
 ds <- bind_rows(
-  npgo1
+  npgo2
+  # ,npgo1
   ,spawn_o2
   ,spawn_t
   # ,spawn_sst
   ,spawn_s
   # ,pdo0
   # ,npgo0
-  # ,spawn_pdo
-  # ,spawn_npgo
+  ,spawn_pdo
+  ,spawn_npgo
 )
 
 dp <- bind_rows(
@@ -141,9 +144,8 @@ dp <- bind_rows(
   ,pelagic_sstoi
   ,pelagic_s
   ,pelagic_p
-  ,pelagic_pp
-  ,pelagic_pdo
-  ,pelagic_npgo
+  # ,pelagic_pdo
+  # ,pelagic_npgo
   ## maybe drop these since more habitat in the south?
   # ,cope.ns.b
   # ,cope.ns.s
@@ -164,7 +166,7 @@ dj <- bind_rows(
   ,juv_t
   # ,juv_sst
   ,juv_s
-  # ,juv_pp
+  ,juv_pp
   ,juv_herr
   ,herr_ssb
 )
@@ -175,14 +177,17 @@ saveRDS(dvr, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
 dvs2 <- bind_rows(
   spawn_o2
-  ,spawn_t
+  # ,spawn_t
   # ,spawn_sst
   ,spawn_s
-  ,pelagic_pdo
+  # ,pelagic_pdo
   ,pelagic_o2
   ,pelagic_sstoi
-  ,pelagic_pp
+  ,pelagic_p
+  ,npgo2
   ,cope.shelf.sb
+  ,juv_pp
+  # ,cope.shelf.n
   # ,juv_herr
   ,herr_ssb
 )
@@ -193,27 +198,34 @@ cond_months <- c(4,5,6)
 cond_pdo <- extract_enviro_var(pdo, "PDO (Apr-Jun)", cond_months)
 cond_npgo <- extract_enviro_var(npgo, "NPGO (Apr-Jun)", cond_months)
 cond_npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)") |> mutate(year = year +1)
-cond_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Apr-Jun)", cond_months, sp_grid)
-cond_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Apr-Jun)", cond_months, sp_grid)
-cond_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Apr-Jun)", cond_months, sp_grid)
+cond_npgo2 <- extract_enviro_var(npgo, "NPGO (2 yrs prior)") |> mutate(year = year +2)
+# cond_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (prior year)", c(spawning_months, pelagic_months, juv_months), sp_grid) |> mutate(year = year +1)
+cond_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Apr-Jun)", cond_months, summer_grid)
+cond_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Apr-Jun)", cond_months, summer_grid)
+cond_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Apr-Jun)", cond_months, summer_grid)
+cond_s <- extract_enviro_var(bccm_bottom_salinity(), "Sea floor salinity (Apr-Jun)", cond_months, summer_grid)
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 
 
 dvc <- bind_rows(
   cond_pdo
   # ,cond_npgo
-  ,cond_npgo1
+  # ,cond_npgo1
+  ,cond_npgo2
+  # ,cond_pp
   ,cond_o2
   ,cond_t
+  ,cond_s
   ,cond_sstoi
   ,herr_ssb
   # ,juv_herr
+  ,juv_pp
 )
 
 saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
 
 
-## Choose plot options and run models ----
+## Choose colours ----
 
 dvr <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
@@ -223,40 +235,33 @@ dvc <- readRDS(paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds
 nvars <- length(sort(unique(c(dvr$type, dvc$type))))
 colours <- c(seq(1:nvars))
 colkey <- data.frame(type = sort(unique(c(dvr$type, dvc$type))), id = colours)
-
 colkey[grepl("NPGO", colkey$type),]$id <- min(colkey[grepl("NPGO", colkey$type),]$id)
 colkey[grepl("PDO", colkey$type),]$id <- min(colkey[grepl("PDO", colkey$type),]$id)
 colkey[grepl("O2", colkey$type),]$id <- min(colkey[grepl("O2", colkey$type),]$id)
 colkey[grepl("SST", colkey$type),]$id <- min(colkey[grepl("SST", colkey$type),]$id)
 colkey[grepl("salinity", colkey$type),]$id <- min(colkey[grepl("salinity", colkey$type),]$id)
 colkey[grepl("temperature", colkey$type),]$id <- min(colkey[grepl("temperature", colkey$type),]$id)
-
-length(unique(colkey$id))
-# pal <- RColorBrewer::brewer.pal(n = length(unique(colkey$id)), name = "Paired")
-# pal[11] <- "#E5E74C"
+# length(unique(colkey$id))
 pal <- scales::hue_pal()(length(unique(colkey$id)))
-
-plot(1:length(pal), pch = 20, cex = 4, col = pal)
+# plot(1:length(pal), pch = 20, cex = 4, col = pal)
 colours <- data.frame(colour = pal, id = rev(unique(colkey$id)))
-
 colkey <- left_join(colkey, colours)
-
-plot(1:length(colkey$type), pch = 20, cex = 4, col = colkey$colour)
-#
-# pal <- scales::hue_pal()(nvars)
-#
-# if (shortlist) {
-#   colours <- c(5, 3, 2, 7, 8, 6)
-#   pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
-# } else {
-#   colours <- c(11, 5, 12, 3, 2, 1, 4, 9, 10, 7, 8, 6)
-#   pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
-#   # plot(1:length(pal), pch = 20, cex = 4, col = pal)
-#   # change yellow to be more visible
-#   # plot(1:length(pal), pch = 20, cex = 4, col = pal)
-# }
+# plot(1:length(colkey$type), pch = 20, cex = 4, col = colkey$colour)
 
 
+
+## Model setting and priors ----
+median_model_iter <- 2000
+median_chains <- 4
+control_list <- list(adapt_delta = 0.9)
+set_priors <- c(
+  brms::set_prior("normal(0, 0.5)", class = "ar"),
+  brms::set_prior("normal(0, 10)", class = "b"),
+  brms::set_prior("student_t(3, 0, 2)", class = "sigma"),
+  brms::set_prior("normal(0, 10)", class = "Intercept")
+  )
+
+## Recruitment analysis ----
 # little environmental and age data pre-1995
 year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
@@ -274,12 +279,9 @@ shortlist <- TRUE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
 
+## Condiiton analyses ----
 start_year <- 2002
 end_year <- 2024
-
-# nvars <- length(sort(unique(dvc$type)))
-# pal <- scales::hue_pal()(nvars)
-# colours <- c(seq(1:nvars))
 
 which_cond_model1 <- "2025-02"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
@@ -287,9 +289,3 @@ source("analysis/04-correlations-btw-rdev-condition-brms.R")
 which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
-# ## set major areas
-# ## this defines the "stock"
-# ## here using all canadian waters
-# major_areas <- c("01", "03", "04", "05", "06", "07", "08", "09",
-#                  "11", # bc offshore waters
-#                  "71","72","73","74","75","76","77","99")

@@ -5,6 +5,8 @@ library(ggeffects)
 library(tidyverse)
 library(patchwork)
 library(brms)
+load_all()
+
 theme_set(ggsidekick::theme_sleek())
 
 f1 <- list.files(paste0(
@@ -17,7 +19,6 @@ d1 <- purrr::map_dfr(f1, readRDS) %>%
                         levels = c("immatures", "mature males", "mature females"),
                         labels = c("Immatures", "Mature males", "Mature females")
   ))
-# d1$model <- "Density-agnostic"
 
 min_est <- min(d1$est)
 max_est <- max(d1$est)
@@ -61,21 +62,19 @@ p <- list()
 m <- list()
 coefs <- list()
 
-n_draws <- 10
-# colours <- c(7, 5, 3, 2, 4, 9, 6)
-# pal <- RColorBrewer::brewer.pal(n = 12, name = "Paired")
+# n_draws <- 100
 
-# for (i in seq_along(sort(unique(data$var_names)))) {
-for(i in 2) {
+for (i in seq_along(sort(unique(data$var_names)))) {
+# for(i in 2) {
   dat0 <- filter(data, var_names == sort(unique(data$var_names))[[i]])
 
-  # set_colour <- pal[colours[i]]
   set_colour <- colkey[colkey$type == sort(unique(data$type))[[i]],]$colour
 
   for (g in seq_along(sort(unique(data$group)))) {
     idx <- length(unique(data$group)) * (i - 1) + g
 
     dat <- filter(dat0, group == unique(data$group)[[g]])
+
 
     if (unique(dat$group) == "Immature condition") {
       group <- "imm"
@@ -120,36 +119,46 @@ for(i in 2) {
         response_new_med = median(response)
       )
 
+    # browser()
     if(poly){
     m[[idx]] <- tryCatch(brm(
-      bf(response ~ poly(value, 2) + ar(time = time)),
+      bf(response ~ poly(value, 2) + ar(time = time)
+         ),
       data = dat,
-      iter = 2000,
-      chains = 4,
-      control = list(adapt_delta = 0.9),
-      prior =
-        c(
-          set_prior("normal(0, 1)", class = "ar"),
-          set_prior("normal(0, 10)", class = "b"),
-          set_prior("student_t(3, 0, 2)", class = "sigma"),
-          set_prior("normal(0, 10)", class = "Intercept")
-        ),
+      iter = median_model_iter,
+      chains = median_chains,
+      control = control_list,
+      prior = set_priors,
+      # iter = 2000,
+      # chains = 4,
+      # control = list(adapt_delta = 0.9),
+      # prior =
+      #   c(
+      #     set_prior("normal(0, 1)", class = "ar"),
+      #     set_prior("normal(0, 10)", class = "b"),
+      #     set_prior("student_t(3, 0, 2)", class = "sigma"),
+      #     set_prior("normal(0, 10)", class = "Intercept")
+      #   ),
       backend = "cmdstan"
     ))
     } else {
       m[[idx]] <- tryCatch(brm(
         bf(response ~ value + ar(time = time)),
         data = dat,
-        iter = 2000,
-        chains = 4,
-        control = list(adapt_delta = 0.9),
-        prior =
-          c(
-            set_prior("normal(0, 1)", class = "ar"),
-            set_prior("normal(0, 10)", class = "b"),
-            set_prior("student_t(3, 0, 2)", class = "sigma"),
-            set_prior("normal(0, 10)", class = "Intercept")
-          ),
+        iter = median_model_iter,
+        chains = median_chains,
+        control = control_list,
+        prior = priors,
+        # iter = 2000,
+        # chains = 4,
+        # control = list(adapt_delta = 0.9),
+        # prior =
+        #   c(
+        #     set_prior("normal(0, 1)", class = "ar"),
+        #     set_prior("normal(0, 10)", class = "b"),
+        #     set_prior("student_t(3, 0, 2)", class = "sigma"),
+        #     set_prior("normal(0, 10)", class = "Intercept")
+        #   ),
         backend = "cmdstan"
       ))
     }
@@ -168,11 +177,11 @@ for(i in 2) {
       if(poly){
       fits <- dd |>
         split(dd$original_iter) |>
-        lapply(do_fit)
+        lapply(do_fit, control_list, set_priors)
       }else{
         fits <- dd |>
           split(dd$original_iter) |>
-          lapply(do_fit, poly = FALSE)
+          lapply(do_fit, control_list, set_priors, poly = FALSE)
       }
 
       # make predictions for each:
@@ -216,7 +225,7 @@ for(i in 2) {
             colour = set_colour
           ) +
           geom_point(
-            data = dat, aes(value_raw, response),
+            data = dat, aes(value_raw, response, alpha = time),
             colour = set_colour
           ))
 
@@ -257,7 +266,7 @@ for(i in 2) {
             data = dd_sum, aes(value_raw, ymin = min, ymax = max),
             colour = set_colour
           ) +
-          geom_point(data = dat, aes(value_raw, response), colour = set_colour))
+          geom_point(data = dat, aes(value_raw, response, alpha = time), colour = set_colour))
 
       # combine coefs:
       if(poly){
@@ -332,10 +341,6 @@ p <- readRDS(paste0(
 
 
 p <- p %>% discard(is.null)
-
-# check convergence
-lapply(m, max_rhat)
-lapply(m, get_ess)
 
 y_lab_big <- ggplot() +
   annotate(
@@ -418,7 +423,35 @@ ggsave(paste0(
 ), width = 7, height = 4.5)
 
 
+
+# # check convergence
+# m <- m %>% discard(is.null)
 #
+# lapply(m, max_rhat)
+# lapply(m, get_ess)
+#
+# # check posteriors
+# pc <- list()
+# yrep <- list()
+# for (i in seq_along(m)){
+#   df <- m[[i]]$data
+#   yrep[[i]] <- brms::posterior_predict(m[[i]])
+#   pc[[i]] <- bayesplot::ppc_dens_overlay(df$response, yrep[[i]])
+#   # pc[[i]] <- bayesplot::ppc_intervals(df$response, yrep[[i]], x = df$value)
+#   # pc[[i]] <- bayesplot::ppc_intervals(df$response, yrep[[i]], x = df$time)
+# }
+#
+# wrap_plots(gglist = pc, ncol = 3) +
+#   plot_layout(guides = "collect")
+#
+#
+# ggsave(paste0(
+#   "stock-specific/",spp,"/figs/pp-check-cond-enviro-corr-", scenario, "-", n_draws, "-draws-brms-",
+#   length(unique(data$var_names)), ".png"
+# ), width = 7, height = 10)
+
+
+
 # library(GGally)
 #
 # dvcw <- dvc |>

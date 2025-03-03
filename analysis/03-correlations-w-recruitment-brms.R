@@ -69,16 +69,20 @@ for (i in seq_along(sort(unique(data$type)))) {
   m[[i]] <- brm(
     bf(response ~ poly(value, 2) + ar(time = time)),
     data = dat,
-    iter = 2000,
-    chains = 4,
-    control = list(adapt_delta = 0.9),
-    prior =
-      c(
-        set_prior("normal(0, 1)", class = "ar"),
-        set_prior("normal(0, 10)", class = "b"),
-        set_prior("student_t(3, 0, 2)", class = "sigma"),
-        set_prior("normal(0, 10)", class = "Intercept")
-      ),
+    iter = median_model_iter,
+    chains = median_chains,
+    control = control_list,
+    prior = set_priors,
+    # iter = 2000,
+    # chains = 4,
+    # control = list(adapt_delta = 0.9),
+    # prior =
+    #   c(
+    #     set_prior("normal(0, 1)", class = "ar"),
+    #     set_prior("normal(0, 10)", class = "b"),
+    #     set_prior("student_t(3, 0, 2)", class = "sigma"),
+    #     set_prior("normal(0, 10)", class = "Intercept")
+    #   ),
     backend = "cmdstan"
   )
 
@@ -93,7 +97,7 @@ for (i in seq_along(sort(unique(data$type)))) {
   # } else {
     fits <- dd |>
       split(dd$original_iter) |>
-      lapply(do_fit)
+      lapply(do_fit, control_list, set_priors)
 
     nd <- data.frame(value = seq(min(dd$value), max(dd$value), length.out = 200), time = NA)
 
@@ -141,7 +145,7 @@ for (i in seq_along(sort(unique(data$type)))) {
         colour = set_colour
       ) +
       geom_point(
-        data = dat, aes(value_raw, response),
+        data = dat, aes(value_raw, response, alpha = time),
         colour = set_colour
       ) +
       geom_line(
@@ -265,10 +269,10 @@ if (shortlist) {
   ), width = 9, height = 14)
 }
 
-if (!shortlist) {
-  coefs2 <- do.call(rbind, coefs)
-  head(coefs2)
+coefs2 <- do.call(rbind, coefs)
+head(coefs2)
 
+if (!shortlist) {
   g <- coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
     pivot_longer(1:4, values_to = "est", names_to = "coef") |>
     mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
@@ -292,6 +296,7 @@ if (!shortlist) {
     length(unique(data$type)), ".png"
   ), width = 8, height = 4)
 
+  saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
 }
 
   coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
@@ -329,8 +334,6 @@ if (!shortlist) {
   }
 
 
-
-saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
 
 
 # if (shortlist) {
