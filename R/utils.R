@@ -29,15 +29,3 @@ filter_months <- function(data, months, type_label){
 #   df
 # }
 
-#' @param data dataframe of multiple indices produced using extract_enviro_var() function
-#'
-#' @export
-check_correlations <- function(data){
-  library(GGally)
-  dw <- data |> select(year, type, value) |>
-    pivot_wider(names_from = type, values_from = value)
-
-  ggpairs(dw, columns = c(2:ncol(dw)),
-          upper = list(continuous = wrap(cor_func, method = 'spearman', symbol = expression('\u03C1 ='))),
-          progress = FALSE)
-}

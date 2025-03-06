@@ -1,5 +1,19 @@
 #' Plot correlations
 #' hack found on stackoverflow https://stackoverflow.com/questions/37889222/change-colors-in-ggpairs-now-that-params-is-deprecated
+#'
+#' @param data dataframe of multiple indices produced using extract_enviro_var() function
+#'
+#' @export
+check_correlations <- function(data){
+  library(GGally)
+  dw <- data |> select(year, type, value) |>
+    pivot_wider(names_from = type, values_from = value)
+
+  ggpairs(dw, columns = c(2:ncol(dw)),
+          upper = list(continuous = wrap(cor_func, method = 'spearman', symbol = expression('\u03C1 ='))),
+          progress = FALSE)
+}
+
 #' @param data
 #' @param mapping
 #' @param method
