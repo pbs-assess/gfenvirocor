@@ -139,8 +139,8 @@ for (i in seq_along(sort(unique(data$var_names)))) {
 
   .cov <- readRDS(paste0(
       "stock-specific/",spp,"/data/cond-index-sims/",
-      which_cond_model, "/cond-index-sims-", group,
-      "-", spp, "-", which_cond_model, "-20-km.rds"
+      which_cond_model1, "/cond-index-sims-", group,
+      "-", spp, "-", which_cond_model1, "-20-km.rds"
     )) |>
       filter(.iteration == j) |>
       mutate(
@@ -170,7 +170,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
   dd_sum <- select(dat, year, value, response) |>
     rename(value_med = value, response_med = response) |>
     right_join(dd) |>
-    group_by(year, value_med, response_med) |>
+    group_by(year, value_med, response_med, time) |>
     summarise(
       y_max = quantile(response, probs = 0.975),
       y_min = quantile(response, probs = 0.025),

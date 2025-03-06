@@ -367,6 +367,9 @@ ggsave(paste0(
 ), width = 7, height = 10)
 
 
+coefs <- readRDS(paste0("stock-specific/",spp,"/output/cond-enviro-corr-coefs-", n_draws, "-draws-",
+                      length(unique(data$var_names)), ".rds"))
+
 coefs2 <- do.call(rbind, coefs)
 head(coefs2)
 
@@ -396,6 +399,34 @@ ggsave(paste0(
   length(unique(data$var_names)), ".png"
 ), width = 7, height = 4.5)
 
+
+coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
+  pivot_longer(1:2, values_to = "est", names_to = "coef") |>
+  mutate(
+    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition"))
+  ) |>
+  mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
+  ggplot() +
+  geom_hline(yintercept = 0, colour = "darkgrey") +
+  geom_violin(aes(forcats::fct_rev(var_names), est,
+                  fill = colour, colour = colour),
+              linewidth =0.1, alpha = 0.7) +
+  # geom_violin(aes(forcats::fct_rev(var_names), est, fill = var_names), colour = NA, alpha = 0.7) +
+  coord_flip() +
+  scale_fill_identity() +
+  scale_colour_identity() +
+  # scale_fill_manual(values = pal[colours]) +
+  # scale_colour_manual(values = pal[colours]) +
+  facet_grid(group ~ coef, scales = "free") +
+  labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+  theme(legend.position = "none")
+
+ggsave(paste0(
+  "stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+  length(unique(data$var_names)), "-just-poly.png"
+), width = 5, height = 4.5)
+
+
 coefs2 |>
   pivot_longer(1:2, values_to = "est", names_to = "coef") |>
   mutate(
@@ -420,7 +451,7 @@ coefs2 |>
 ggsave(paste0(
   "stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-by-group-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
-), width = 7, height = 4.5)
+), width = 5.5, height = 4.5)
 
 
 
