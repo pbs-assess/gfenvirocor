@@ -58,6 +58,13 @@ for (i in seq_along(sort(unique(data$type)))) {
     .d
   })
 
+  if(remove_outlier){
+    # 2016 is a recruitment outlier for many Pacific groundfish species
+    dd <- filter(dd, year != 2016)
+    dat <- filter(dat, year != 2016)
+  }
+
+
   dd_sum <- dd |>
     group_by(year, value_raw) |>
     summarise(

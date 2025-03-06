@@ -124,7 +124,7 @@ juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 # juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
 # juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Current year)", c(spawning_months, pelagic_months), sp_grid)
-juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-Jun)", c(spawning_months, condition_months), juv_grid)
+juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-Jun)", c(spawning_months, pelagic_months, condition_months), juv_grid)
 
 ds <- bind_rows(
   npgo2
@@ -271,7 +271,8 @@ end_year <- year_range[2] # for recruitment analysis
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sour
 
-
+# remove_outlier <- FALSE
+remove_outlier <- TRUE
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
@@ -283,9 +284,13 @@ source("analysis/03-correlations-w-recruitment-brms.R")
 start_year <- 2002
 end_year <- 2024
 
+
+control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
 
+
+control_list <- list(adapt_delta = 0.9)
 which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
