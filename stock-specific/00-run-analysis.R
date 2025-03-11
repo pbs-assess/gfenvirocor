@@ -38,7 +38,7 @@ spawn_min <- 3
 spawn_max <- 100
 
 juv_min <- 20
-juv_max <- 100
+juv_max <- 75 # changed from 100, need to rerun recruitment stuff
 
 # depth range from our survey data encompassing 95% of this species’ biomass
 summer_min <- 40
@@ -70,8 +70,10 @@ summer_grid <- new_grid |> filter(depth_min >= summer_min & depth_max <= summer_
 # source("analysis/xx-get-all-enviro-vars.R")
 load("data/oisst_month_grid26.rda") # not yet added to pacea
 
-# which community variables are we interested in
+# which community variables are we not interested in
 euphausids <- NULL
+conspecific_ssb <- TRUE
+
 # check options
 # unique(herring_recruitment$region)
 herring_stocks <- c("HG", "PRD", "CC", "WCVI")
@@ -79,16 +81,19 @@ copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Islan
 
 source("analysis/01-get-community-vars.R")
 
+# npcbi <- select(bi, year, anomaly) |> rename(value = anomaly)  |> mutate(month = 1)
+# npcbi0 <- extract_enviro_var(npcbi, "Current bifurcation")
+alpi0 <- select(alpi, year, anomaly) |> rename(value = anomaly) |> mutate(month = 1) %>% extract_enviro_var(., "Aleutian Low Pressure")
 pdo0 <- extract_enviro_var(pdo, "PDO (current year)", c(spawning_months, pelagic_months, juv_months))
 npgo0 <- extract_enviro_var(npgo, "NPGO (current year)", c(spawning_months, pelagic_months, juv_months))
 npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)", c(spawning_months, pelagic_months, juv_months)) |> mutate(year = year +1)
 npgo2 <- extract_enviro_var(npgo, "NPGO (2 yrs prior)", c(spawning_months, pelagic_months, juv_months)) |> mutate(year = year +2)
 spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-Mar)", spawning_months)
 spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-Mar)", spawning_months)
-spawn_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Jan-Mar)", spawning_months, spawn_grid)
-spawn_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Jan-Mar)", spawning_months, spawn_grid)
+spawn_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Seafloor O2 (Jan-Mar)", spawning_months, spawn_grid)
+spawn_t <- extract_enviro_var(bccm_bottom_temperature(), "Seafloor temperature (Jan-Mar)", spawning_months, spawn_grid)
 spawn_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jan-Mar)", spawning_months, spawn_grid)
-spawn_s <- extract_enviro_var(bccm_bottom_salinity(), "Sea floor salinity (Jan-Mar)", spawning_months, spawn_grid)
+spawn_s <- extract_enviro_var(bccm_bottom_salinity(), "Seafloor salinity (Jan-Mar)", spawning_months, spawn_grid)
 
 pelagic_pdo <- extract_enviro_var(pdo, "PDO (Jan-May)", c(spawning_months, pelagic_months))
 pelagic_npgo <- extract_enviro_var(npgo, "NPGO (Jan-May)", c(spawning_months, pelagic_months))
@@ -106,20 +111,20 @@ cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Copepods - Boreal (South VI)")
 cope.ss.s <- extract_enviro_var(cops.ss.south, "Copepods - Southern (South VI)")
 cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Copepods - Subarctic (South VI)")
 
-cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - Boreal (VI shelf)")
-cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - Southern (VI shelf)")
+cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - medium (VI shelf)")
+cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - small (VI shelf)")
 
-cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - non-subarctic (VI shelf)")
-cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - Subarctic (VI shelf)")
+cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - small  (VI shelf)")
+cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - large (VI shelf)")
 
 
 # juv_pdo <- extract_enviro_var(pdo, "PDO (Jun-Dec)", juv_months)
 # juv_npgo <- extract_enviro_var(npgo, "NPGO (Jun-Dec)", juv_months)
-
-juv_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Jun-Dec)", juv_months, juv_grid)
-juv_t <- extract_enviro_var(bccm_bottom_temperature(),  "Sea floor temperature (Jun-Dec)", juv_months, juv_grid)
+ssb0 <- extract_enviro_var(conspecific_ssb, "Lingcod SSB")
+juv_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Seafloor O2 (Jun-Dec)", juv_months, juv_grid)
+juv_t <- extract_enviro_var(bccm_bottom_temperature(),  "Seafloor temperature (Jun-Dec)", juv_months, juv_grid)
 juv_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jun-Dec)", juv_months, juv_grid)
-juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Sea floor salinity (Jun-Dec)", juv_months, juv_grid)
+juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Seafloor salinity (Jun-Dec)", juv_months, juv_grid)
 juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 # juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
@@ -128,6 +133,8 @@ juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-
 
 ds <- bind_rows(
   npgo2
+  ,alpi0
+  # ,npcbi0
   # ,npgo1
   ,spawn_o2
   ,spawn_t
@@ -153,10 +160,10 @@ dp <- bind_rows(
   # ,cope.ss.b
   # ,cope.ss.s
   # ,cope.ss.n
-  # ,cope.shelf.b
-  # ,cope.shelf.s
+  ,cope.shelf.b
+  ,cope.shelf.s
   ,cope.shelf.n
-  ,cope.shelf.sb
+  # ,cope.shelf.sb
 )
 
 dj <- bind_rows(
@@ -166,9 +173,10 @@ dj <- bind_rows(
   ,juv_t
   # ,juv_sst
   ,juv_s
-  ,juv_pp
+  # ,juv_pp
   ,juv_herr
   ,herr_ssb
+  ,ssb0
 )
 
 dvr <- bind_rows(ds,dp,dj)
@@ -185,11 +193,16 @@ dvs2 <- bind_rows(
   ,pelagic_sstoi
   ,pelagic_p
   ,npgo2
-  ,cope.shelf.sb
-  ,juv_pp
-  # ,cope.shelf.n
-  # ,juv_herr
+  # ,cope.shelf.sb
+  ,cope.shelf.b
+  ,cope.shelf.s
+  ,cope.shelf.n
+  # ,juv_pp
+  # # ,cope.shelf.n
+  # # ,juv_herr
   ,herr_ssb
+  ,ssb0
+  # ,alpi0
 )
 saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
 
@@ -200,15 +213,16 @@ cond_npgo <- extract_enviro_var(npgo, "NPGO (Apr-Jun)", cond_months)
 cond_npgo1 <- extract_enviro_var(npgo, "NPGO (prior year)") |> mutate(year = year +1)
 cond_npgo2 <- extract_enviro_var(npgo, "NPGO (2 yrs prior)") |> mutate(year = year +2)
 # cond_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (prior year)", c(spawning_months, pelagic_months, juv_months), sp_grid) |> mutate(year = year +1)
-cond_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Sea floor O2 (Apr-Jun)", cond_months, summer_grid)
-cond_t <- extract_enviro_var(bccm_bottom_temperature(), "Sea floor temperature (Apr-Jun)", cond_months, summer_grid)
+cond_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Seafloor O2 (Apr-Jun)", cond_months, summer_grid)
+cond_t <- extract_enviro_var(bccm_bottom_temperature(), "Seafloor temperature (Apr-Jun)", cond_months, summer_grid)
 cond_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Apr-Jun)", cond_months, summer_grid)
-cond_s <- extract_enviro_var(bccm_bottom_salinity(), "Sea floor salinity (Apr-Jun)", cond_months, summer_grid)
+cond_s <- extract_enviro_var(bccm_bottom_salinity(), "Seafloor salinity (Apr-Jun)", cond_months, summer_grid)
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 
 
 dvc <- bind_rows(
   cond_pdo
+  # ,npcbi0
   # ,cond_npgo
   # ,cond_npgo1
   ,cond_npgo2
@@ -219,7 +233,7 @@ dvc <- bind_rows(
   ,cond_sstoi
   ,herr_ssb
   # ,juv_herr
-  ,juv_pp
+  # ,juv_pp
 )
 
 saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
@@ -248,8 +262,6 @@ colours <- data.frame(colour = pal, id = rev(unique(colkey$id)))
 colkey <- left_join(colkey, colours)
 # plot(1:length(colkey$type), pch = 20, cex = 4, col = colkey$colour)
 
-
-
 ## Model setting and priors ----
 median_model_iter <- 2000
 median_chains <- 4
@@ -269,10 +281,10 @@ start_year <- 1975 # 1978 is first year with significant age data
 end_year <- year_range[2] # for recruitment analysis
 
 final_year <- 2025 # for variable plotting
-# source("analysis/02-plot-vars.R") # not working sour
+# source("analysis/02-plot-vars.R") # not working sourced
 
-# remove_outlier <- FALSE
-remove_outlier <- TRUE
+remove_outlier <- FALSE
+# remove_outlier <- TRUE
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 

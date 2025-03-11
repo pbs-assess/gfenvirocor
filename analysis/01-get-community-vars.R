@@ -108,9 +108,7 @@ cops.ss.subarctic <- select(cops.ss, year, month, value = Cops.subarctic)
   }
 }
 
-
 if(!is.null(herring_stocks)){
-
 herring_recuits <- herring_recruitment |>
   filter(region %in% herring_stocks) |>
   group_by(year) |>
@@ -126,5 +124,14 @@ herring_ssb <- herring_spawning_biomass |>
          month = 1) |>
   select(year, month, value) |>
   distinct()
+}
 
+if(!is.null(conspecific_ssb)){
+ts <- readRDS(paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
+
+conspecific_ssb <- ts |>
+  mutate(value = ssb,
+         month = 1) |>
+  select(year, month, value) |>
+  distinct()
 }
