@@ -58,10 +58,10 @@ for (i in seq_along(sort(unique(data$type)))) {
     .d
   })
 
-  if(remove_outlier){
+  if(!is.null(remove_outliers)){
     # 2016 is a recruitment outlier for many Pacific groundfish species
-    dd <- filter(dd, year != 2016)
-    dat <- filter(dat, year != 2016)
+    dd <- filter(dd, !(year %in% c(remove_outliers)))
+    dat <- filter(dat, !(year %in% c(remove_outliers)))
   }
 
 
@@ -265,15 +265,37 @@ y_lab_big <- ggplot() +
 )
 
 if (shortlist) {
+  set_width = 9.5
+  set_height = 8
+
+  (pp <- ((y_lab_big |
+             wrap_plots(gglist = p, ncol = 3) &
+             scale_color_viridis_d(option = "D", direction = 1) &
+             theme(
+               text = element_text(size = 12),
+               plot.title = element_blank(),
+               legend.position = "none",
+               plot.tag.position = c(.2, .85)
+             )) +
+            plot_annotation(tag_levels = list(c(
+              "", "A", "B", "C", "D",
+              "E", "F", "G", "H", "I",
+              "J", "K", "L", "M", "N",
+              "O", "P", "Q", "R", "S", "T", "U"
+            ))) +
+            plot_layout(widths = c(0.05, 2)))
+  )
+
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
     length(unique(data$type)), "-short.png"
-  ), width = 9, height = 6)
-} else {
+  ), width = set_width, height = set_height)
+
+  } else {
   ggsave(paste0(
     "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
     length(unique(data$type)), ".png"
-  ), width = 9, height = 14)
+  ), width = 9.5, height = 14)
 }
 
 coefs2 <- do.call(rbind, coefs)

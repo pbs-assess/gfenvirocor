@@ -283,19 +283,21 @@ end_year <- year_range[2] # for recruitment analysis
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sourced
 
-remove_outlier <- FALSE
-# remove_outlier <- TRUE
+remove_outliers <- NULL
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
 shortlist <- TRUE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
+# try removing outliers
+remove_outliers <- 2016
+shortlist <- FALSE
+source("analysis/03-correlations-w-recruitment-brms.R")
 
 ## Condiiton analyses ----
 start_year <- 2002
 end_year <- 2024
-
 
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
