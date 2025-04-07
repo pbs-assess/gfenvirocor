@@ -6,8 +6,16 @@ theme_set(ggsidekick::theme_sleek())
 scale_fact <- 20
 
 # Explore covariates ----
+
+# Hack for two of same colour in first plot
+ds_labels <- sort(unique(ds$type))
+ds_labels[ds_labels=="NPGO (2 yrs prior)"] <- "NPGO (2 yrs prior or Jan-Mar)"
+ds_labels[ds_labels=="NPGO (Jan-Mar)"] <- "NPGO (2 yrs prior or Jan-Mar)"
+ds_labels <- sort(unique(ds_labels))
+
 (ev1 <- ds |>
    left_join(colkey) |>
+    filter(year >= r_start_year)|>
    # mutate(colour = factor(colour, levels = unique(colkey$colour))) |>
    mutate(
      type2 = as.numeric(as.factor(type)),
@@ -16,14 +24,15 @@ scale_fact <- 20
    # mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
    ggplot() +
    geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
-   scale_colour_identity(labels = sort(unique(ds$type)), guide="legend") +
-   scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
+   scale_colour_identity(labels = ds_labels, guide="legend") +
+   scale_x_continuous(limits = c(start_year, final_year), breaks = seq(start_year, final_year, 5) ) +
    theme(
      axis.title = element_blank(),
      legend.justification=c(0, 1)) +
    labs(x = "Year", y = "Standardized index", colour = "Spawning"))
 
 (ev2 <- dp |> left_join(colkey) |>
+    filter(year >= r_start_year)|>
     mutate(
       type2 = as.numeric(as.factor(type)),
       colour = fct_reorder(colour, type2)) |>
@@ -38,6 +47,7 @@ scale_fact <- 20
     labs(x = "Year", y = "Standardized value", colour = "Pelagic"))
 
 (ev3 <- dj |> left_join(colkey) |>
+    filter(year >= r_start_year)|>
     mutate(
       type2 = as.numeric(as.factor(type)),
       colour = fct_reorder(colour, type2)) |>
@@ -53,6 +63,7 @@ scale_fact <- 20
 
 (ev4 <- dvc |>
     left_join(colkey) |>
+    filter(year >= c_start_year)|>
     mutate(
       type2 = as.numeric(as.factor(type)),
       colour = fct_reorder(colour, type2)) |>
@@ -99,6 +110,7 @@ ragg::agg_png(
   units = "in", res = 300, scaling = 1)
 check_correlations(dp)
 dev.off()
+
 # ggsave(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
 #        width = length(unique(dp$type))*1.75,
 #        height = length(unique(dp$type))*1.75)
