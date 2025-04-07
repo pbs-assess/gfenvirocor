@@ -133,7 +133,7 @@ juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-
 
 ds <- bind_rows(
   npgo2
-  ,alpi0
+  # ,alpi0
   # ,npcbi0
   # ,npgo1
   ,spawn_o2
@@ -176,7 +176,7 @@ dj <- bind_rows(
   # ,juv_pp
   ,juv_herr
   ,herr_ssb
-  ,ssb0
+  # ,ssb0
 )
 
 dvr <- bind_rows(ds,dp,dj)
@@ -201,7 +201,7 @@ dvs2 <- bind_rows(
   # # ,cope.shelf.n
   # # ,juv_herr
   ,herr_ssb
-  ,ssb0
+  # ,ssb0
   # ,alpi0
 )
 saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
@@ -262,6 +262,7 @@ colours <- data.frame(colour = pal, id = rev(unique(colkey$id)))
 colkey <- left_join(colkey, colours)
 # plot(1:length(colkey$type), pch = 20, cex = 4, col = colkey$colour)
 
+
 ## Model setting and priors ----
 median_model_iter <- 2000
 median_chains <- 4
@@ -278,10 +279,8 @@ set_priors <- c(
 year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
 start_year <- 1975 # 1978 is first year with significant age data
-end_year <- year_range[2] # for recruitment analysis
-
-final_year <- 2025 # for variable plotting
-# source("analysis/02-plot-vars.R") # not working sourced
+# end_year <- year_range[2] # for recruitment analysis
+end_year <- 2019 # for recruitment analysis
 
 remove_outliers <- NULL
 shortlist <- FALSE
@@ -308,3 +307,9 @@ control_list <- list(adapt_delta = 0.9)
 which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
+
+r_start_year <- 1975
+c_start_year <- 2002
+
+final_year <- 2025 # for variable plotting
+# source("analysis/02-plot-vars.R") # not working sourced
