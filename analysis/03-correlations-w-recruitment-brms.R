@@ -3,15 +3,16 @@ library(glmmTMB)
 library(brms)
 library(tidyverse)
 library(patchwork)
+library(rosettafish)
 
-# install cmdstanr to use instead of rstan as the backend:
-if (FALSE) {
-  install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
-  cmdstanr::install_cmdstan()
-}
+# # install cmdstanr to use instead of rstan as the backend:
+# if (FALSE) {
+#   install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+#   cmdstanr::install_cmdstan()
+# }
 
 theme_set(ggsidekick::theme_sleek())
-
+op <- options()
 
 p <- list()
 m <- list()
@@ -95,13 +96,12 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   summary(m[[i]])
 
-  # if (max(rhat(m[[i]])) >= 1.02) {
+    # still plot rhat > 1.01, but very faintly
     if (max(rhat(m[[i]])) > 1.01) {
       set_alpha <- 0.2
     } else {
       set_alpha <- 1
     }
-  # } else {
     fits <- dd |>
       split(dd$original_iter) |>
       lapply(do_fit, control_list, set_priors)
@@ -145,6 +145,7 @@ for (i in seq_along(sort(unique(data$type)))) {
     set_colour <- colkey[colkey$type == sort(unique(data$type))[[i]],]$colour
 
 
+    if (FRENCH) options(OutDec = ",")
     (p[[i]] <- ggplot() +
       # a place holder to set the axes correctly
       geom_linerange(
@@ -169,12 +170,14 @@ for (i in seq_along(sort(unique(data$type)))) {
         alpha = 0.25, fill = set_colour
       ) +
       labs(
-        x = unique(dd$var_names), y = "",
+        x = rosettafish::en2fr(unique(dd$var_names), FRENCH), y = "",
         colour = "", fill = ""
       ) +
       ggtitle("") +
       ggsidekick::theme_sleek()
     )
+
+    options(op)
 
     # combine coefs:
     coefs[[i]] <- fits |> purrr::map_dfr(\(x) {
@@ -183,58 +186,82 @@ for (i in seq_along(sort(unique(data$type)))) {
     })
     coefs[[i]]$var_names <- sort(unique(data$var_names))[[i]]
   # }
+
 }
 
 if (shortlist) {
   saveRDS(coefs, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
-    length(unique(data$type)), "-short.rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
   ))
+  if(FRENCH) {
+    saveRDS(p, paste0(
+      "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+      n_draws, "-draws-", length(unique(data$type)), "-short-FR.rds"
+    ))
+  }else{
   saveRDS(p, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
-    length(unique(data$type)), "-short.rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
   ))
+  }
   saveRDS(m, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
-    length(unique(data$type)), "-short.rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
   ))
 } else {
   saveRDS(coefs, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
-    length(unique(data$type)), ".rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+    n_draws, "-draws-", length(unique(data$type)), ".rds"
   ))
+  if(FRENCH) {
+    saveRDS(p, paste0(
+      "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+      n_draws, "-draws-", length(unique(data$type)), "-FR.rds"
+    ))
+  }else{
   saveRDS(p, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
-    length(unique(data$type)), ".rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+    n_draws, "-draws-", length(unique(data$type)), ".rds"
   ))
+  }
   saveRDS(m, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
-    length(unique(data$type)), ".rds"
+    "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+    n_draws, "-draws-", length(unique(data$type)), ".rds"
   ))
 }
 
-# ## load saved
-# if(shortlist){
-#   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
-#                         length(unique(data$type)), "-short.rds"))
-#   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
-#                     length(unique(data$type)), "-short.rds"))
-#   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
-#                     length(unique(data$type)), "-short.rds"))
-# } else{
-#   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
-#                         length(unique(data$type)), ".rds"))
-#   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
-#                     length(unique(data$type)), ".rds"))
-#   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
-#                     length(unique(data$type)), ".rds"))
-# }
-
-
+## load saved
+if(shortlist){
+  coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+                          n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
+if(FRENCH) {
+  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      n_draws, "-draws-", length(unique(data$type)), "-short-FR.rds"))
+}else{
+  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
+}
+  m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+                      n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
+} else{
+  coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+                          n_draws, "-draws-", length(unique(data$type)), ".rds"))
+if(FRENCH) {
+  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      n_draws, "-draws-", length(unique(data$type)), "-FR.rds"))
+}else{
+  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      n_draws, "-draws-", length(unique(data$type)), ".rds"))
+}
+  m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+                      n_draws, "-draws-", length(unique(data$type)), ".rds"))
+}
 
 lapply(m, get_ess)
 lapply(m, max_rhat)
 
+if (FRENCH) options(OutDec = ",")
 p <- p %>% discard(is.null)
 
 y_lab_big <- ggplot() +
@@ -266,7 +293,7 @@ y_lab_big <- ggplot() +
 
 if (shortlist) {
   set_width = 9.5
-  set_height = 6.5
+  set_height = 7.5
 
   (pp <- ((y_lab_big |
              wrap_plots(gglist = p, ncol = 3) &
@@ -287,24 +314,33 @@ if (shortlist) {
   )
 
   ggsave(paste0(
-    "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
-    length(unique(data$type)), "-short.png"
-  ), width = set_width, height = set_height)
-
+      "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-timeseries-",
+      scenario, "-", n_draws, "-draws-",
+      length(unique(data$type)), "-short.png"
+    ), width = set_width, height = set_height)
   } else {
+
   ggsave(paste0(
-    "stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-",
+    "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-timeseries-",
+    scenario, "-", n_draws, "-draws-",
     length(unique(data$type)), ".png"
   ), width = 9.5, height = 14)
+
 }
 
 coefs2 <- do.call(rbind, coefs)
 head(coefs2)
 
+
 if (!shortlist) {
   g <- coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
+    mutate(var_names = rosettafish::en2fr(var_names, FRENCH)) |>
     pivot_longer(1:4, values_to = "est", names_to = "coef") |>
-    mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
+    mutate(coef = factor(coef, levels = if(FRENCH){
+      c("poly1", "poly2", "pente", "p", "sigma")
+      }else{
+        c("poly1", "poly2", "slope", "p", "sigma")
+        })) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
     geom_violin(aes(forcats::fct_rev(var_names), est, fill = colour,
@@ -316,21 +352,33 @@ if (!shortlist) {
     # scale_fill_manual(values = pal[colours]) +
     # scale_colour_manual(values = pal[colours]) +
     facet_grid(~coef, scales = "free_x") +
-    labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+    labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+         colour = rosettafish::en2fr("Variable", FRENCH),
+         fill = rosettafish::en2fr("Variable", FRENCH)) +
     theme(legend.position = "none")
   g
 
   ggsave(paste0(
-    "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+    "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+    scenario, "-", n_draws, "-draws-brms-",
     length(unique(data$type)), ".png"
   ), width = 8, height = 4)
 
+  # if(FRENCH) {
+  # saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range-FR.rds"))
+  # }else{
   saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
+  # }
 }
 
   coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
+    mutate(var_names = rosettafish::en2fr(var_names, FRENCH)) |>
     pivot_longer(1:2, values_to = "est", names_to = "coef") |>
-    mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
+    mutate(coef = factor(coef, levels = if(FRENCH){
+      c("poly1", "poly2", "pente", "p", "sigma")
+    }else{
+      c("poly1", "poly2", "slope", "p", "sigma")
+    })) |>
     ggplot() +
     geom_hline(yintercept = 0, colour = "darkgrey") +
     geom_violin(aes(forcats::fct_rev(var_names), est,
@@ -345,24 +393,28 @@ if (!shortlist) {
     # scale_fill_manual(values = pal[colours]) +
     # scale_colour_manual(values = pal[colours]) +
     facet_grid(~coef, scales = "free_x") +
-    labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+    labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+         colour = rosettafish::en2fr("Variable", FRENCH),
+         fill = rosettafish::en2fr("Variable", FRENCH)) +
     theme(legend.position = "none")
 
   if (shortlist) {
     ggsave(paste0(
-      "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+      "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+      scenario, "-", n_draws, "-draws-brms-",
       length(unique(data$type)), "-just-poly-short.png"
     ), width = 5, height = 2.5)
 
   } else {
     ggsave(paste0(
-      "stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+      "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+      scenario, "-", n_draws, "-draws-brms-",
       length(unique(data$type)), "-just-poly.png"
     ), width = 5, height = 4)
 
   }
 
-
+  options(op)
 
 
 # if (shortlist) {

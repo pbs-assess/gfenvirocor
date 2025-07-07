@@ -4,10 +4,9 @@ library(pacea)
 # library(brms)
 devtools::load_all()
 
+FRENCH <- FALSE
 # plotting options
 theme_set(ggsidekick::theme_sleek())
-FRENCH <- FALSE
-if (FRENCH) options(OutDec = ",")
 
 species <- "Lingcod"
 stock <- "Coastwide"
@@ -295,11 +294,17 @@ start_year <- 1975 # 1978 is first year with significant age data
 end_year <- 2018 # for recruitment analysis
 
 remove_outliers <- NULL
+
+## FRENCH argument doesn't matter until this point,
+## so can be changed here as needed
+# FRENCH <- FALSE
+# FRENCH <- TRUE
+
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
-
 shortlist <- TRUE
 source("analysis/03-correlations-w-recruitment-brms.R")
+
 
 # try removing outliers
 remove_outliers <- 2016
@@ -325,3 +330,5 @@ c_start_year <- 2002
 
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sourced
+
+
