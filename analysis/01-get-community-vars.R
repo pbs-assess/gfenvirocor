@@ -108,6 +108,21 @@ cops.ss.subarctic <- select(cops.ss, year, month, value = Cops.subarctic)
   }
 }
 
+if(!is.null(copepod_months)){
+
+try(inds <- readRDS(paste0("data/copepod-biomass-geostat-indices-",
+                           paste0(copepod_months, collapse = "-"),".rds")))
+
+  if(!exists("inds")){
+    source("analysis/xx-copepod-geostat-indices.R")
+  }
+
+cops.shelf.boreal <- filter(inds, group == "Cops.boreal") |> select(year, month, value = est)
+cops.shelf.south <- filter(inds, group == "Cops.south") |> select(year, month, value = est)
+cops.shelf.subarctic <- filter(inds, group == "Cops.subarctic") |> select(year, month, value = est)
+}
+
+
 if(!is.null(herring_stocks)){
 herring_recuits <- herring_recruitment |>
   filter(region %in% herring_stocks) |>
