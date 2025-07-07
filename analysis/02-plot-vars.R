@@ -1,5 +1,7 @@
 # plot environmental variables
+
 library(tidyverse)
+library(rosettafish)
 # library(GGally)
 theme_set(ggsidekick::theme_sleek())
 
@@ -24,12 +26,14 @@ ds_labels <- sort(unique(ds_labels))
    # mutate(type = factor(type, levels = c("ENSO", "PDO", "NPGO"))) %>%
    ggplot() +
    geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
-   scale_colour_identity(labels = ds_labels, guide="legend") +
+   scale_colour_identity(labels = rosettafish::en2fr(ds_labels, FRENCH), guide="legend") +
    scale_x_continuous(limits = c(start_year, final_year), breaks = seq(start_year, final_year, 5) ) +
    theme(
      axis.title = element_blank(),
      legend.justification=c(0, 1)) +
-   labs(x = "Year", y = "Standardized index", colour = "Spawning"))
+   labs(x = rosettafish::en2fr("Year", FRENCH),
+        y = rosettafish::en2fr("Standardized index", FRENCH),
+        colour = rosettafish::en2fr("Spawning", FRENCH)))
 
 (ev2 <- dp |> left_join(colkey) |>
     filter(year >= r_start_year)|>
@@ -38,13 +42,15 @@ ds_labels <- sort(unique(ds_labels))
       colour = fct_reorder(colour, type2)) |>
     ggplot() +
       geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
-      scale_colour_identity(labels = sort(unique(dp$type)), guide="legend") +
+      scale_colour_identity(labels = rosettafish::en2fr(sort(unique(dp$type)), FRENCH), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvp$type)), name = "Paired")) +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title = element_blank(),
       legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "Pelagic"))
+    labs(x = rosettafish::en2fr("Year", FRENCH),
+         y = rosettafish::en2fr("Standardized index", FRENCH),
+         colour = rosettafish::en2fr("Pelagic", FRENCH)))
 
 (ev3 <- dj |> left_join(colkey) |>
     filter(year >= r_start_year)|>
@@ -53,13 +59,15 @@ ds_labels <- sort(unique(ds_labels))
       colour = fct_reorder(colour, type2)) |>
     ggplot() +
     geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
-    scale_colour_identity(labels = sort(unique(dj$type)), guide="legend") +
+    scale_colour_identity(labels = rosettafish::en2fr(sort(unique(dj$type)), FRENCH), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvj$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title = element_blank(),
       legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "Juvenile"))
+    labs(x = rosettafish::en2fr("Year", FRENCH),
+         y = rosettafish::en2fr("Standardized index", FRENCH),
+         colour = rosettafish::en2fr("Juvenile", FRENCH)))
 
 (ev4 <- dvc |>
     left_join(colkey) |>
@@ -69,25 +77,28 @@ ds_labels <- sort(unique(ds_labels))
       colour = fct_reorder(colour, type2)) |>
     ggplot() +
     geom_line(aes(year, value, group = type, colour = colour), alpha = 0.7, linewidth = 1) +
-    scale_colour_identity(labels = sort(unique(dvc$type)), guide="legend") +
+    scale_colour_identity(labels = rosettafish::en2fr(sort(unique(dvc$type)), FRENCH), guide="legend") +
     # scale_colour_manual(values = RColorBrewer::brewer.pal(n = length(unique(dvc$type)), name = "Paired"))  +
     scale_x_continuous(limits = c(start_year,final_year), breaks = seq(start_year, final_year, 5) ) +
     theme(
       axis.title.y = element_blank(),
       legend.justification=c(0, 1)) +
-    labs(x = "Year", y = "Standardized value", colour = "Condition"))
+    labs(x = rosettafish::en2fr("Year", FRENCH),
+         y = rosettafish::en2fr("Standardized index", FRENCH),
+         colour = rosettafish::en2fr("Condition", FRENCH)))
 
 y_lab_big <- ggplot() +
   annotate(geom = "text", x = 1, y = 1, size = 4,
            colour = "grey30",
-           label = "Standardized annual values", angle = 90) +
+           label = rosettafish::en2fr("Standardized annual values", FRENCH), angle = 90) +
   coord_cartesian(clip = "off")+
   theme_void()
 
 
 y_lab_big + patchwork::wrap_elements(ev1/ev2/ev3/ev4) + patchwork::plot_layout(width = c(0.05,1))
 
-ggsave(paste0("stock-specific/",spp,"/figs/ev-indices.png"), width = 9, height = 8.5)
+if (!FRENCH) ggsave(paste0("stock-specific/",spp,"/figs/ev-indices.png"), width = 9, height = 8.5)
+if (FRENCH) ggsave(paste0("stock-specific/",spp,"/figs-french/ev-indices.png"), width = 9, height = 8.5)
 
 
 
@@ -139,7 +150,7 @@ dev.off()
 #        height = length(unique(dj$type))*2)
 
 ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png"),
+  paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/variable-correlations-cond.png"),
   width = length(unique(dvc$type))*2,
   height = length(unique(dvc$type))*2,
   units = "in", res = 300, scaling = 1)

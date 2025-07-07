@@ -4,6 +4,10 @@ library(pacea)
 # library(brms)
 devtools::load_all()
 
+# plotting options
+theme_set(ggsidekick::theme_sleek())
+FRENCH <- FALSE
+if (FRENCH) options(OutDec = ",")
 
 species <- "Lingcod"
 stock <- "Coastwide"
@@ -15,6 +19,7 @@ spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
 dir.create(paste0("stock-specific/", spp, "/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/data/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/figs/"), showWarnings = FALSE)
+if (FRENCH) dir.create(paste0("stock-specific/", spp, "/figs-french/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/output/"), showWarnings = FALSE)
 
 ## Prep SS3 outputs ----
@@ -77,8 +82,15 @@ conspecific_ssb <- TRUE
 # check options
 # unique(herring_recruitment$region)
 herring_stocks <- c("HG", "PRD", "CC", "WCVI")
-copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Island Shelf")
 
+copepod_regions <- NULL
+# copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Island Shelf")
+copepod_months <- c(4,5)
+copepod_months <- c(3,4,5,6)
+
+copepod_months <- c(1,2,3,4,5,6,7,8,9)
+
+focal_month <- 4
 source("analysis/01-get-community-vars.R")
 
 # npcbi <- select(bi, year, anomaly) |> rename(value = anomaly)  |> mutate(month = 1)
@@ -107,14 +119,14 @@ pelagic_p <- extract_enviro_var(bccm_phytoplankton(), "Phytoplankton (Apr-May)",
 # cope.ns.b <- extract_enviro_var(cops.ns.boreal, "Boreal Copepods (North VI)")
 # cope.ns.s <- extract_enviro_var(cops.ns.south, "Southern Copepods (North VI)")
 # cope.ns.n <- extract_enviro_var(cops.ns.subarctic, "Subarctic copepods (North VI)")
-cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Copepods - Boreal (South VI)")
-cope.ss.s <- extract_enviro_var(cops.ss.south, "Copepods - Southern (South VI)")
-cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Copepods - Subarctic (South VI)")
+# cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Copepods - Boreal (South VI)")
+# cope.ss.s <- extract_enviro_var(cops.ss.south, "Copepods - Southern (South VI)")
+# cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Copepods - Subarctic (South VI)")
 
 cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - medium (VI shelf)")
 cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - small (VI shelf)")
 
-cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - small  (VI shelf)")
+# cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - small  (VI shelf)")
 cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - large (VI shelf)")
 
 
@@ -194,9 +206,9 @@ dvs2 <- bind_rows(
   ,pelagic_p
   ,npgo2
   # ,cope.shelf.sb
-  ,cope.shelf.b
+  # ,cope.shelf.b
   ,cope.shelf.s
-  ,cope.shelf.n
+  # ,cope.shelf.n
   # ,juv_pp
   # # ,cope.shelf.n
   # # ,juv_herr
@@ -280,7 +292,7 @@ year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
 start_year <- 1975 # 1978 is first year with significant age data
 # end_year <- year_range[2] # for recruitment analysis
-end_year <- 2019 # for recruitment analysis
+end_year <- 2018 # for recruitment analysis
 
 remove_outliers <- NULL
 shortlist <- FALSE
@@ -294,15 +306,15 @@ remove_outliers <- 2016
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
-## Condiiton analyses ----
+## Condition analyses ----
 start_year <- 2002
-end_year <- 2024
 
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
 
 
+end_year <- 2024
 control_list <- list(adapt_delta = 0.9)
 which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")

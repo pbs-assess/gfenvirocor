@@ -4,6 +4,10 @@ library(pacea)
 # library(brms)
 devtools::load_all()
 
+# plotting options
+theme_set(ggsidekick::theme_sleek())
+FRENCH <- FALSE
+if (FRENCH) options(OutDec = ",")
 
 species <- "Lingcod"
 stock <- "Coastwide"

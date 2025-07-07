@@ -7,6 +7,7 @@
 check_correlations <- function(data){
   library(GGally)
   dw <- data |> select(year, type, value) |>
+    mutate(type = rosettafish::en2fr(type, FRENCH)) |>
     pivot_wider(names_from = type, values_from = value)
 
   ggpairs(dw, columns = c(2:ncol(dw)),
