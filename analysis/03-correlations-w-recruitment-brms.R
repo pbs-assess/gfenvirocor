@@ -215,18 +215,18 @@ if (shortlist) {
 
 # ## load saved
 # if(shortlist){
-#   coefs <- readRDS(paste0("data-generated/rdev-enviro-corr-coefs-", n_draws, "-draws-",
+#   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
 #                         length(unique(data$type)), "-short.rds"))
-#   p <- readRDS(paste0("data-generated/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
+#   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
 #                     length(unique(data$type)), "-short.rds"))
-#   m <- readRDS(paste0("data-generated/rdev-enviro-corr-model-list-", n_draws, "-draws-",
+#   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
 #                     length(unique(data$type)), "-short.rds"))
 # } else{
-#   coefs <- readRDS(paste0("data-generated/rdev-enviro-corr-coefs-", n_draws, "-draws-",
+#   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-", n_draws, "-draws-",
 #                         length(unique(data$type)), ".rds"))
-#   p <- readRDS(paste0("data-generated/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
+#   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-", n_draws, "-draws-",
 #                     length(unique(data$type)), ".rds"))
-#   m <- readRDS(paste0("data-generated/rdev-enviro-corr-model-list-", n_draws, "-draws-",
+#   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-", n_draws, "-draws-",
 #                     length(unique(data$type)), ".rds"))
 # }
 
@@ -266,7 +266,7 @@ y_lab_big <- ggplot() +
 
 if (shortlist) {
   set_width = 9.5
-  set_height = 8
+  set_height = 6.5
 
   (pp <- ((y_lab_big |
              wrap_plots(gglist = p, ncol = 3) &
