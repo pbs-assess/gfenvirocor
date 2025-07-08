@@ -353,7 +353,7 @@ p <- p %>% discard(is.null)
 y_lab_big <- ggplot() +
   annotate(
     geom = "text", x = 1, y = 1, size = 4.5, colour = "grey30",
-    label = paste0(rosettafish::en2fr("Condition index (scaled)", FRENCH))
+    label = paste0(rosettafish::en2fr("Body condition index (scaled)", FRENCH))
     # "Indice d'état corporel (mis à l'échelle)"
     , angle = 90
   ) +
@@ -392,6 +392,7 @@ coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   mutate(
     group = factor(group, levels = c("Immature condition", "Male condition", "Female condition")),
     group = rosettafish::en2fr(group, FRENCH),
+    var_names = rosettafish::en2fr(var_names, FRENCH),
     coef = factor(coef, levels = if(FRENCH){
       c("poly1", "poly2", "pente", "p", "ar1", "sigma")
     }else{
@@ -418,7 +419,7 @@ ggsave(paste0(
   "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
   "/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
-), width = 7, height = 4.5)
+), width = 7, height = 4.75)
 
 
 coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>

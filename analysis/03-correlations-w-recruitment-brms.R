@@ -188,74 +188,34 @@ for (i in seq_along(sort(unique(data$type)))) {
 
 }
 
-if (shortlist) {
   saveRDS(coefs, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
-    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
+    n_draws, "-draws-", length(unique(data$type)),
+    if(shortlist){"-short"}, ".rds"
   ))
-  if(FRENCH) {
     saveRDS(p, paste0(
       "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-      n_draws, "-draws-", length(unique(data$type)), "-short-FR.rds"
+      n_draws, "-draws-", length(unique(data$type)),
+      if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"
     ))
-  }else{
-  saveRDS(p, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
-  ))
-  }
+
   saveRDS(m, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
-    n_draws, "-draws-", length(unique(data$type)), "-short.rds"
+    n_draws, "-draws-", length(unique(data$type)),
+    if(shortlist){"-short"}, ".rds"
   ))
-} else {
-  saveRDS(coefs, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
-    n_draws, "-draws-", length(unique(data$type)), ".rds"
-  ))
-  if(FRENCH) {
-    saveRDS(p, paste0(
-      "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-      n_draws, "-draws-", length(unique(data$type)), "-FR.rds"
-    ))
-  }else{
-  saveRDS(p, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-    n_draws, "-draws-", length(unique(data$type)), ".rds"
-  ))
-  }
-  saveRDS(m, paste0(
-    "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
-    n_draws, "-draws-", length(unique(data$type)), ".rds"
-  ))
-}
+
 
 ## load saved
-if(shortlist){
   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
-                          n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
-if(FRENCH) {
+                          n_draws, "-draws-", length(unique(data$type)),
+                          if(shortlist){"-short"}, ".rds"))
   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-                      n_draws, "-draws-", length(unique(data$type)), "-short-FR.rds"))
-}else{
-  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-                      n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
-}
+                      n_draws, "-draws-", length(unique(data$type)),
+                      if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"))
   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
-                      n_draws, "-draws-", length(unique(data$type)), "-short.rds"))
-} else{
-  coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
-                          n_draws, "-draws-", length(unique(data$type)), ".rds"))
-if(FRENCH) {
-  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-                      n_draws, "-draws-", length(unique(data$type)), "-FR.rds"))
-}else{
-  p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
-                      n_draws, "-draws-", length(unique(data$type)), ".rds"))
-}
-  m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
-                      n_draws, "-draws-", length(unique(data$type)), ".rds"))
-}
+                      n_draws, "-draws-", length(unique(data$type)),
+                      if(shortlist){"-short"}, ".rds"))
 
 lapply(m, get_ess)
 lapply(m, max_rhat)
