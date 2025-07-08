@@ -6,7 +6,7 @@ library(tidyverse)
 library(patchwork)
 library(brms)
 theme_set(ggsidekick::theme_sleek())
-
+op <- options()
 
 ts <- readRDS(paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
 ts <- ts |> filter(year >= start_year & year <= end_year)
@@ -222,6 +222,9 @@ for (i in seq_along(sort(unique(data$var_names)))) {
   nd$lwr2 <- apply(pred2, 2, quantile, probs = 0.025)
   nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
 
+
+  if (FRENCH) options(OutDec = ",")
+
   (p[[i]] <- ggplot() +
     geom_ribbon(
       data = nd, aes(value, ymin = lwr, ymax = upr),
@@ -251,12 +254,14 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       colour = colours[[i]]
     ) +
     labs(
-      x = unique(dd$var_names), y = "",
+      x = rosettafish::en2fr(unique(dd$var_names), FRENCH), y = "",
       colour = "", fill = ""
     ) +
     ggtitle("") +
     ggsidekick::theme_sleek()
   )
+
+  options(op)
 
   if (poly) {
     coefs[[i]] <- fits |> purrr::map_dfr(\(x) {
@@ -274,23 +279,35 @@ for (i in seq_along(sort(unique(data$var_names)))) {
 
 if (lag) {
   if (poly) {
-    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-poly-lag.rds"))
-    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly-lag.rds"))
-    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-poly-lag.rds"))
+    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-",
+                          n_draws, "-poly-lag.rds"))
+    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-",
+                      n_draws, "-poly-lag", if(FRENCH){"-FR"}, ".rds"))
+    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-",
+                      n_draws, "-poly-lag.rds"))
   } else {
-    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-lag.rds"))
-    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-lag.rds"))
-    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-lag.rds"))
+    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-",
+                          n_draws, "-lag.rds"))
+    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-",
+                      n_draws, "-lag", if(FRENCH){"-FR"}, ".rds"))
+    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-",
+                      n_draws, "-lag.rds"))
   }
 } else {
   if (poly) {
-    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-poly.rds"))
-    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly.rds"))
-    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-poly.rds"))
+    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-",
+                          n_draws, "-poly.rds"))
+    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-",
+                      n_draws, "-poly", if(FRENCH){"-FR"}, ".rds"))
+    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-",
+                      n_draws, "-poly.rds"))
   } else {
-    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, ".rds"))
-    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, ".rds"))
-    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, ".rds"))
+    saveRDS(coefs, paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-",
+                          n_draws, ".rds"))
+    saveRDS(p, paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-",
+                      n_draws, "", if(FRENCH){"-FR"}, ".rds"))
+    saveRDS(m, paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-",
+                      n_draws, ".rds"))
   }
 }
 
@@ -298,21 +315,21 @@ if (lag) {
 # if(lag){
 #   if(poly){
 #     coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-poly-lag.rds"))
-#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly-lag.rds"))
+#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly-lag", if(FRENCH){"-FR"}, ".rds"))
 # m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-poly-lag.rds"))
 #   } else{
 #     coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-lag.rds"))
-#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-lag.rds"))
+#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-lag", if(FRENCH){"-FR"}, ".rds"))
 #     m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-lag.rds"))
 #   }
 # } else{
 #   if(poly){
 #     coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, "-poly.rds"))
-#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly.rds"))
+#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "-poly", if(FRENCH){"-FR"}, ".rds"))
 #     m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, "-poly.rds"))
 #   } else{
 #     coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-coefs-", n_draws, ".rds"))
-#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, ".rds"))
+#     p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-plot-list-", n_draws, "", if(FRENCH){"-FR"}, ".rds"))
 #     m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-condition-corr-model-list-", n_draws, ".rds"))
 #   }
 # }
@@ -321,15 +338,15 @@ if (lag) {
 lapply(m, get_ess)
 lapply(m, max_rhat)
 
-
 y_lab_big <- ggplot() +
   annotate(
     geom = "text", x = 1, y = 1, size = 4.5, colour = "grey30",
-    label = paste0("Recruitment deviations"), angle = 90
+    label = paste0(rosettafish::en2fr("Recruitment deviations", FRENCH)), angle = 90
   ) +
   coord_cartesian(clip = "off") +
   theme_void()
 
+if (FRENCH) options(OutDec = ",")
 (pp <- ((y_lab_big |
   wrap_plots(gglist = p, ncol = 2) &
     theme(
@@ -340,44 +357,16 @@ y_lab_big <- ggplot() +
   plot_layout(widths = c(0.04, 1)))
 )
 
+ggsave(
+  paste0(
+    "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+    "/rdev-condition-corr-timeseries-", scenario,
+    "-start", start_year, "-", n_draws, "-draws-bmrs",
+    if(poly){"-poly"}, if(lag){"-lag"}, ".png"
+  ),
+  width = 7, height = 3
+)
 
-if (lag) {
-  if (poly) {
-    ggsave(
-      paste0(
-        "stock-specific/",spp,"/figs/rdev-condition-corr-timeseries-", scenario,
-        "-start", start_year, "-", n_draws, "-draws-bmrs-poly-lag.png"
-      ),
-      width = 7, height = 3
-    )
-  } else {
-    ggsave(
-      paste0(
-        "stock-specific/",spp,"/figs/rdev-condition-corr-timeseries-", scenario,
-        "-start-", start_year, "-", n_draws, "-draws-bmrs-lag.png"
-      ),
-      width = 7, height = 3
-    )
-  }
-} else {
-  if (poly) {
-    ggsave(
-      paste0(
-        "stock-specific/",spp,"/figs/rdev-condition-corr-timeseries-", scenario,
-        "-start-", start_year, "-", n_draws, "-draws-bmrs-poly2.png"
-      ),
-      width = 7, height = 3
-    )
-  } else {
-    ggsave(
-      paste0(
-        "stock-specific/",spp,"/figs/rdev-condition-corr-timeseries-", scenario,
-        "-start-", start_year, "-", n_draws, "-draws-bmrs2.png"
-      ),
-      width = 7, height = 3
-    )
-  }
-}
 
 
 coefs2 <- do.call(rbind, coefs)
@@ -385,7 +374,13 @@ head(coefs2)
 
 coefs2 |>
   pivot_longer(1:(ncol(coefs2) - 1), values_to = "est", names_to = "coef") |>
-  mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "sigma"))) |>
+  mutate(coef = factor(coef, levels = if(FRENCH){
+    c("poly1", "poly2", "pente", "p", "sigma")
+  }else{
+    c("poly1", "poly2", "slope", "p", "sigma")
+  }),
+    type = rosettafish::en2fr(type, FRENCH)
+  ) |>
   ggplot() +
   geom_violin(aes(forcats::fct_rev(type), est, fill = type), colour = NA, alpha = 0.7) +
   coord_flip() +
@@ -393,24 +388,17 @@ coefs2 |>
   scale_fill_manual(values = colours) +
   scale_colour_manual(values = colours) +
   facet_grid(~coef, scales = "free") +
-  labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+  labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+       colour = rosettafish::en2fr("Variable", FRENCH),
+       fill = rosettafish::en2fr("Variable", FRENCH)) +
   theme(legend.position = "none")
 
 
-if (lag) {
-  if (poly) {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start", start_year, "-", n_draws, "-draws-bmrs-poly-lag.png"), width = 6, height = 1.5)
-  } else {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs-lag.png"), width = 6, height = 1.5)
-  }
-} else {
-  if (poly) {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs-poly.png"), width = 6, height = 1.5)
-  } else {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs.png"), width = 6, height = 1.5)
-  }
-}
-
+ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+              "/rdev-condition-corr-coef-violins-", scenario, "-start",
+              start_year, "-", n_draws, "-draws-bmrs",
+              if(poly){"-poly"}, if(lag){"-lag"}, ".png"),
+       width = if(FRENCH){7.7}else{6}, height = 1.5)
 
 
 coefs2 |>
@@ -423,7 +411,9 @@ coefs2 |>
   scale_fill_manual(values = colours) +
   scale_colour_manual(values = colours) +
   facet_grid(rows = vars(coef), scales = "free") +
-  labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+  labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+       colour = rosettafish::en2fr("Variable", FRENCH),
+       fill = rosettafish::en2fr("Variable", FRENCH)) +
   theme(
     legend.position = "none",
     axis.title.y = element_blank(),
@@ -431,18 +421,11 @@ coefs2 |>
     axis.ticks.y = element_blank()
   )
 
+ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+              "/rdev-condition-corr-coef-violins-", scenario, "-start",
+              start_year, "-", n_draws, "-draws-bmrs",
+              if(poly){"-poly"}, if(lag){"-lag"}, "-inset.png"),
+       width = 1.5, height = 2)
 
-if (lag) {
-  if (poly) {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start", start_year, "-", n_draws, "-draws-bmrs-poly-lag-inset.png"), width = 1.5, height = 2)
-  } else {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs-lag-inset.png"), width = 1.5, height = 2)
-  }
-} else {
-  if (poly) {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs-poly-inset.png"), width = 1.5, height = 2)
-  } else {
-    ggsave(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-coef-violins-", scenario, "-start-", start_year, "-", n_draws, "-draws-bmrs-inset.png"), width = 1.5, height = 2)
-  }
-}
 
+options(op)

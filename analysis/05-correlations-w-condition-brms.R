@@ -6,8 +6,8 @@ library(tidyverse)
 library(patchwork)
 library(brms)
 load_all()
-
 theme_set(ggsidekick::theme_sleek())
+op <- options()
 
 f1 <- list.files(paste0(
   "stock-specific/",spp,"/data/cond-index/",
@@ -119,7 +119,6 @@ for (i in seq_along(sort(unique(data$var_names)))) {
         response_new_med = median(response)
       )
 
-    # browser()
     if(poly){
     m[[idx]] <- tryCatch(brm(
       bf(response ~ poly(value, 2) + ar(time = time)
@@ -216,8 +215,8 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       nd$lwr2 <- apply(pred2, 2, quantile, probs = 0.025)
       nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
 
-# browser()
 
+      if (FRENCH) options(OutDec = ",")
       (p[[idx]] <- ggplot() +
           # a place holder to set the axes correctly
           geom_linerange(
@@ -260,6 +259,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
       nd$lwr2 <- apply(pred2, 2, quantile, probs = 0.025)
       nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
 
+
       (p[[idx]] <- ggplot() +
           # a place holder to set the axes correctly
           geom_linerange(
@@ -276,6 +276,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     }
 
 
+    if (FRENCH) options(OutDec = ",")
     (p[[idx]] <- p[[idx]] +
         geom_line(
           data = nd, aes(value_raw, est),
@@ -291,20 +292,22 @@ for (i in seq_along(sort(unique(data$var_names)))) {
           alpha = 0.25, fill = set_colour
         ) +
         labs(
-          x = unique(dat$var_names), y = "",
-          colour = "", fill = ""
+          x = rosettafish::en2fr(unique(dat$var_names), FRENCH),
+          y = "", colour = "", fill = ""
         ) +
         ggsidekick::theme_sleek()
     )
 
     if (idx %in% seq_along(unique(data$group))) {
-      p[[idx]] <- p[[idx]] + ggtitle(unique(dat$group))
+      p[[idx]] <- p[[idx]] + ggtitle(rosettafish::en2fr(unique(dat$group), FRENCH))
     }
 
     if (!(idx %in% c(seq(from = 2, to = length(unique(data$group)) * length(unique(data$var_names)), by = 3)))) {
       p[[idx]] <- p[[idx]] + theme(axis.title.x = element_blank())
     }
     # }
+
+    options(op)
 
     # combine coefs:
     if(poly){
@@ -321,22 +324,27 @@ for (i in seq_along(sort(unique(data$var_names)))) {
 
 
 saveRDS(p, paste0(
-  "stock-specific/",spp,"/output/cond-enviro-corr-plot-list-poly-", n_draws, "-draws-",
-  length(unique(data$var_names)), ".rds"
+  "stock-specific/",spp,"/output/cond-enviro-corr-plot-list", if(poly){"-poly"},
+  "-", n_draws, "-draws-",
+  length(unique(data$var_names)), "", if(FRENCH){"-FR"}, ".rds"
 ))
 
 saveRDS(m, paste0(
-  "stock-specific/",spp,"/output/cond-enviro-corr-model-list-poly-", n_draws, "-draws-",
+  "stock-specific/",spp,"/output/cond-enviro-corr-model-list", if(poly){"-poly"},
+  "-", n_draws, "-draws-",
   length(unique(data$var_names)), ".rds"
 ))
 
-saveRDS(coefs, paste0("stock-specific/",spp,"/output/cond-enviro-corr-coefs-", n_draws, "-draws-",
-                      length(unique(data$var_names)), ".rds"))
+saveRDS(coefs, paste0(
+  "stock-specific/",spp,"/output/cond-enviro-corr-coefs-", if(poly){"-poly"},
+  "-", n_draws, "-draws-",
+  length(unique(data$var_names)), ".rds"
+  ))
 
 
 p <- readRDS(paste0(
-  "stock-specific/",spp,"/output/cond-enviro-corr-plot-list-poly-", n_draws, "-draws-",
-  length(unique(data$var_names)), ".rds"
+  "stock-specific/",spp,"/output/cond-enviro-corr-plot-list", if(poly){"-poly"}, "-", n_draws, "-draws-",
+  length(unique(data$var_names)), "", if(FRENCH){"-FR"}, ".rds"
 ))
 
 
@@ -345,11 +353,15 @@ p <- p %>% discard(is.null)
 y_lab_big <- ggplot() +
   annotate(
     geom = "text", x = 1, y = 1, size = 4.5, colour = "grey30",
-    label = paste0("Condition index (scaled)"), angle = 90
+    label = paste0(rosettafish::en2fr("Condition index (scaled)", FRENCH))
+    # "Indice d'état corporel (mis à l'échelle)"
+    , angle = 90
   ) +
   coord_cartesian(clip = "off") +
   theme_void()
 
+
+if (FRENCH) options(OutDec = ",")
 
 (pp <- ((y_lab_big |
            wrap_plots(gglist = p, ncol = 3) &
@@ -362,13 +374,15 @@ y_lab_big <- ggplot() +
 )
 
 ggsave(paste0(
-  "stock-specific/",spp,"/figs/cond-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-brms-",
+  "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+  "/cond-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
 ), width = 7, height = 10)
 
 
-coefs <- readRDS(paste0("stock-specific/",spp,"/output/cond-enviro-corr-coefs-", n_draws, "-draws-",
-                      length(unique(data$var_names)), ".rds"))
+coefs <- readRDS(paste0("stock-specific/",spp,"/output/cond-enviro-corr-coefs-",
+                        if(poly){"-poly"}, "-", n_draws, "-draws-",
+                        length(unique(data$var_names)), ".rds"))
 
 coefs2 <- do.call(rbind, coefs)
 head(coefs2)
@@ -376,9 +390,13 @@ head(coefs2)
 coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   pivot_longer(1:4, values_to = "est", names_to = "coef") |>
   mutate(
-    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition"))
+    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition")),
+    group = rosettafish::en2fr(group, FRENCH),
+    coef = factor(coef, levels = if(FRENCH){
+      c("poly1", "poly2", "pente", "p", "ar1", "sigma")
+    }else{
+      c("poly1", "poly2", "slope", "p", "ar1", "sigma")})
   ) |>
-  mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
   geom_violin(aes(forcats::fct_rev(var_names), est,
@@ -391,11 +409,14 @@ coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   # scale_fill_manual(values = pal[colours]) +
   # scale_colour_manual(values = pal[colours]) +
   facet_grid(group ~ coef, scales = "free") +
-  labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+  labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+       colour = rosettafish::en2fr("Variable", FRENCH),
+       fill = rosettafish::en2fr("Variable", FRENCH)) +
   theme(legend.position = "none")
 
 ggsave(paste0(
-  "stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+  "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+  "/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
 ), width = 7, height = 4.5)
 
@@ -403,9 +424,14 @@ ggsave(paste0(
 coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   pivot_longer(1:2, values_to = "est", names_to = "coef") |>
   mutate(
-    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition"))
-  ) |>
-  mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
+    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition")),
+    group = rosettafish::en2fr(group, FRENCH),
+    var_names = rosettafish::en2fr(var_names, FRENCH),
+    coef = factor(coef, levels = if(FRENCH){
+                  c("poly1", "poly2", "pente", "p", "ar1", "sigma")
+                  }else{
+                  c("poly1", "poly2", "slope", "p", "ar1", "sigma")})
+    ) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
   geom_violin(aes(forcats::fct_rev(var_names), est,
@@ -418,21 +444,29 @@ coefs2 |> left_join(colkey, by=c("var_names" = "type")) |>
   # scale_fill_manual(values = pal[colours]) +
   # scale_colour_manual(values = pal[colours]) +
   facet_grid(group ~ coef, scales = "free") +
-  labs(x = "", y = "Estimate", colour = "Variable", fill = "Variable") +
+  labs(x = "", y = rosettafish::en2fr("Estimate", FRENCH),
+       colour = rosettafish::en2fr("Variable", FRENCH),
+       fill = rosettafish::en2fr("Variable", FRENCH)) +
   theme(legend.position = "none")
 
 ggsave(paste0(
-  "stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
+  "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+  "/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), "-just-poly.png"
-), width = 5, height = 4.5)
+), width = 5, height = 4.75)
 
 
 coefs2 |>
   pivot_longer(1:2, values_to = "est", names_to = "coef") |>
   mutate(
-    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition"))
+    group = factor(group, levels = c("Immature condition", "Male condition", "Female condition")),
+    group = rosettafish::en2fr(group, FRENCH),
+    var_names = rosettafish::en2fr(var_names, FRENCH),
+    coef = factor(coef, levels = if(FRENCH){
+      c("poly1", "poly2", "pente", "p", "ar1", "sigma")
+    }else{
+      c("poly1", "poly2", "slope", "p", "ar1", "sigma")})
   ) |>
-  mutate(coef = factor(coef, levels = c("poly1", "poly2", "slope", "p", "ar1", "sigma"))) |>
   ggplot() +
   geom_hline(yintercept = 0, colour = "darkgrey") +
   geom_violin(aes(forcats::fct_rev(group), est, fill = group, colour = group),
@@ -446,13 +480,17 @@ coefs2 |>
     axis.text.y = element_blank(),
     strip.text.y.left = element_text(angle = 0)
   ) +
-  labs(x = NULL, y = "Estimate", colour = "", fill = "")
+  labs(x = NULL,
+       y = rosettafish::en2fr("Estimate", FRENCH),
+       colour = "", fill = "")
 
 ggsave(paste0(
-  "stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-by-group-", scenario, "-", n_draws, "-draws-brms-",
+  "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+  "/cond-enviro-corr-coef-violins-by-group-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
 ), width = 5.5, height = 4.5)
 
+options(op)
 
 
 # # check convergence
@@ -477,7 +515,8 @@ ggsave(paste0(
 #
 #
 # ggsave(paste0(
-#   "stock-specific/",spp,"/figs/pp-check-cond-enviro-corr-", scenario, "-", n_draws, "-draws-brms-",
+#   "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+#   "/pp-check-cond-enviro-corr-", scenario, "-", n_draws, "-draws-brms-",
 #   length(unique(data$var_names)), ".png"
 # ), width = 7, height = 10)
 

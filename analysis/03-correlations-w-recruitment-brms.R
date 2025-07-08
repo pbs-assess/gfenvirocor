@@ -3,7 +3,6 @@ library(glmmTMB)
 library(brms)
 library(tidyverse)
 library(patchwork)
-library(rosettafish)
 
 # # install cmdstanr to use instead of rstan as the backend:
 # if (FALSE) {
@@ -267,7 +266,7 @@ p <- p %>% discard(is.null)
 y_lab_big <- ggplot() +
   annotate(
     geom = "text", x = 1, y = 1, size = 5, colour = "grey30",
-    label = paste0("Recruitment deviations"), angle = 90
+    label = paste0(rosettafish::en2fr("Recruitment deviations", FRENCH)), angle = 90
   ) +
   coord_cartesian(clip = "off") +
   theme_void()

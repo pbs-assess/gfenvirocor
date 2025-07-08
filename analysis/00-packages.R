@@ -4,24 +4,19 @@ if(!require(tidyverse))install.packages("tidyverse")
 if(!require(pacea))remotes::install_github("pbs-assess/pacea")
 if(!require(sf))install.packages("sf")
 if(!require(patchwork))install.packages("patchwork")
-if(!require(GGally))install.packages("GGally")
+if(!require(GGally))install.packages("GGally") # used for correlation plots
+if(!require(ragg))install.packages("ragg") # used for correlation plots
+if(!require(brms))install.packages("brms")
+if(!require(ggsidekick))remotes::install_github("seananderson/ggsidekick")
 
+# rosettafish for french translation of figures
+# needs to be updated to contain all environmental variables before using
+# so may be better to install from a local clone, but if git version has been updated then this works
 if(!require(rosettafish))remotes::install_github("pbs-assess/rosettafish")
 
-# if(!require(aplot))install.packages("aplot") # for working with lists of plots
-# if(!require(gridGraphics))install.packages("gridGraphics")
-#
-# if(!require(future))install.packages("future") # option for parallel running of condition models
-# if(!require(remotes))install.packages("remotes")
-#
-# if(!require(gfplot))remotes::install_github("pbs-assess/gfplot")
-#
-# if(!require(ggsidekick))remotes::install_github("seananderson/ggsidekick")
-# if(!require(ggeffects))remotes::install_github("seananderson/ggeffects", ref = "sdmTMB")
 
-
-# source("analysis/00-pacea-grid.R")
-# source("analysis/03-condition-calc.R")
-# source("analysis/04-condition-models.R")
-# source("analysis/05-combine-condition-indices.R")
-# source("analysis/06-plot-condition-maps.R")
+# install cmdstanr to use instead of rstan as the backend:
+if (FALSE) {
+  install.packages("cmdstanr", repos = c("https://mc-stan.org/r-packages/", getOption("repos")))
+  cmdstanr::install_cmdstan()
+}

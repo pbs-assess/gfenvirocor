@@ -1,7 +1,6 @@
 # plot environmental variables
 
 library(tidyverse)
-library(rosettafish)
 # library(GGally)
 theme_set(ggsidekick::theme_sleek())
 
@@ -97,14 +96,16 @@ y_lab_big <- ggplot() +
 
 y_lab_big + patchwork::wrap_elements(ev1/ev2/ev3/ev4) + patchwork::plot_layout(width = c(0.05,1))
 
-if (!FRENCH) ggsave(paste0("stock-specific/",spp,"/figs/ev-indices.png"), width = 9, height = 8.5)
-if (FRENCH) ggsave(paste0("stock-specific/",spp,"/figs-french/ev-indices.png"), width = 9, height = 8.5)
+ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+              "/ev-indices.png"), width = 9, height = 8.5)
+
 
 
 
 ## check_correlations() doesn't seem to work with sourced scripts
 ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png"),
+  paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+         "/variable-correlations-spawn.png"),
   width = length(unique(ds$type))*2,
   height = length(unique(ds$type))*2,
   units = "in", res = 300, scaling = 1)
@@ -115,7 +116,8 @@ dev.off()
 #        height = length(unique(ds$type))*2)
 
 ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png"),
+  paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+         "/variable-correlations-pelagic.png"),
   width = length(unique(dp$type))*2,
   height = length(unique(dp$type))*2,
   units = "in", res = 300, scaling = 1)
@@ -126,7 +128,8 @@ dev.off()
 #        width = length(unique(dp$type))*1.75,
 #        height = length(unique(dp$type))*1.75)
 ragg::agg_png(
-  paste0("stock-specific/",spp,"/figs/variable-correlations-juv.png"),
+  paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
+         "/variable-correlations-juv.png"),
   width = length(unique(dj$type))*2,
   height = length(unique(dj$type))*2,
   units = "in", res = 300, scaling = 1)
