@@ -1,7 +1,8 @@
 # Stock-specific outputs
-#stock-specific/lingcod/figs/
-#stock-specific/lingcod/data/
-#stock-specific/lingcod/output/
+stock-specific/*/data/
+stock-specific/*/output/
+stock-specific/*/figs/
+stock-specific/*/figs-french/
 
 *.rdata
 *.rds
