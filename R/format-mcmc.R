@@ -5,6 +5,7 @@ format_mcmc <- function(
   species,
   stock,
   scenario = "base",
+  age_recruited = out_sum$age_recruited,
   samples = 100,
   seed = 10
   ) {
@@ -18,25 +19,29 @@ format_mcmc <- function(
 
   rdev <- out[,grepl("Main_RecrDev", names(out))] |>
     rename_with(~str_replace(., "Main_RecrDev_", "")) |>
-    pivot_longer(cols = everything(), names_to = "year", values_to = "rdev")
+    pivot_longer(cols = everything(), names_to = "year", values_to = "rdev") |>
+    mutate(year = as.numeric(year) - age_recruited)
 
   ssb <- out[,grepl("SSB_", names(out))] |>
     rename_with(~str_replace(., "SSB_", "")) |>
-    pivot_longer(cols = everything(), names_to = "year", values_to = "ssb")
+    pivot_longer(cols = everything(), names_to = "year", values_to = "ssb") |>
+    mutate(year = as.numeric(year))
 
   recruits <- out[,grepl("Recr_", names(out))] |>
     rename_with(~str_replace(., "Recr_", "")) |>
-    pivot_longer(cols = everything(), names_to = "year", values_to = "recruits")
+    pivot_longer(cols = everything(), names_to = "year", values_to = "recruits") |>
+    mutate(year = as.numeric(year) - age_recruited)
 
   harvest_rate <- out[,grepl("F_", names(out))] |>
     rename_with(~str_replace(., "F_", "")) |>
-    pivot_longer(cols = everything(), names_to = "year", values_to = "harvest_rate")
+    pivot_longer(cols = everything(), names_to = "year", values_to = "harvest_rate")|>
+    mutate(year = as.numeric(year))
 
   df <- left_join(ssb, recruits) |> left_join(rdev) |> left_join(harvest_rate)
   df$species <- species
   df$stock <- stock
   df$scenario <- scenario
-  df$year <- as.numeric(df$year)
+  # df$year <- as.numeric(df$year)
 
   df <- filter(df, !is.na(year))
 
