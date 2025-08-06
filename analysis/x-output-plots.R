@@ -34,23 +34,23 @@ if(mcmc){
 # ts <- ts |> filter(year < 2019 & year >= 1990)
 
 ts |> ggplot() +
-  geom_line(aes(year, ssb), colour = "gold", linewidth = 2) +
-  geom_point(aes(year, recruits/2), colour = "purple", size =3) +
+  geom_line(aes(year, ssb/mean(ts$ssb, na.rm = TRUE)), colour = "gold", linewidth = 2) +
+  geom_point(aes(year, recruits/mean(ts$recruits, na.rm = TRUE)), colour = "purple", size =3) +
   # geom_point(data= ts2, aes(year, recruits/2), colour = "red", size =3) +
   # geom_point(aes(year, p_by_biomass*10000), colour = "red", size =3) +
-  scale_x_continuous(breaks = c(1990,1995,2000,2005,2010,2015,2020)) +
+  # scale_x_continuous(breaks = c(1990,1995,2000,2005,2010,2015,2020)) +
   labs(y = "Biomass/Recruits", x = "Year") +
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank())
 
-ggsave(paste0("stock-specific/",spp,"/figs/recruits-", mcmc, ".png"), width = 4, height = 2.5)
+ggsave(paste0("stock-specific/",spp,"/figs/recruits-", mcmc, "-", scenario, ".png"), width = 4, height = 2.5)
 
 
 n_draws <- 100
 
 dd <- purrr::map_dfr(seq_len(n_draws), \(j) {
   .draw <- readRDS(paste0("stock-specific/",spp,"/output/mcmc/",scenario,"/df",j,".RData"))
-  .d <- left_join(.draw, ts) |> filter(year >= start_year & year <= end_year)
+  .d <- left_join(.draw, ts) |> filter(year >= r_start_year & year <= r_end_year)
   # .d <- na.omit(.d)
   .d$original_iter <- j
   .d
@@ -69,7 +69,7 @@ ts  |> filter(year <= end_year & year >= start_year) |> ggplot() +
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank())
 
-ggsave(paste0("stock-specific/",spp,"/figs/rdev-", mcmc, ".png"), width = 6, height = 2.5)
+ggsave(paste0("stock-specific/",spp,"/figs/rdev-", mcmc, "-", scenario, ".png"), width = 6, height = 2.5)
 
 
 

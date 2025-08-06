@@ -27,7 +27,7 @@ if (shortlist) {
 ts <- readRDS(paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
 
 
-data <- left_join(ts, dvs) |> filter(year >= start_year & year <= end_year)
+data <- left_join(ts, dvs) |> filter(year >= r_start_year & year <= r_end_year)
 data <- na.omit(data) # not needed but kept as a precaution
 
 data$response <- data[["rdev"]]
@@ -43,7 +43,7 @@ for (i in seq_along(sort(unique(data$type)))) {
   # retrieve a bunch of `.d` data frames above as MCMC samples from 'response' posterior:
   dd <- purrr::map_dfr(seq_len(n_draws), \(j) {
     .draw <- readRDS(paste0("stock-specific/",spp,"/output/mcmc/",scenario,"/df",j,".RData"))
-    .d <- left_join(.draw, dvs) |> filter(year >= start_year & year <= end_year)
+    .d <- left_join(.draw, dvs) |> filter(year >= r_start_year & year <= r_end_year)
     .d <- na.omit(.d)
     .d <- .d |>
       group_by(type) |>

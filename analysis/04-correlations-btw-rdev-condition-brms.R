@@ -9,7 +9,7 @@ theme_set(ggsidekick::theme_sleek())
 op <- options()
 
 ts <- readRDS(paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
-ts <- ts |> filter(year >= start_year & year <= end_year)
+ts <- ts |> filter(year >= max(c_start_year, r_start_year - 1) & year <= min(c_end_year + 1, r_end_year))
 
 
 f1 <- list.files(paste0(
@@ -50,9 +50,7 @@ dd1 <- na.omit(dd1)
 dd2 <- dd1 |> filter(type != "Immature condition")
 
 ts2 <- left_join(ts, dd2)
-ts2 <- na.omit(ts2)
-
-
+# ts2 <- na.omit(ts2)
 
 # correlations between condition and recruitment ----
 
@@ -74,9 +72,11 @@ if (lag) {
     group_by(type) |>
     mutate(year = lead(year)) |>
     ungroup() |> ## lag condition
-    filter(year >= start_year & year <= end_year)
+    filter(year >= max(c_start_year + 1 , r_start_year) & year <= min(c_end_year + 1, r_end_year))
+  data <- na.omit(data)
 } else {
-  data <- ts2 |> filter(year >= start_year & year <= end_year)
+  data <- ts2 |> filter(year >= max(c_start_year, r_start_year) & year <= min(c_end_year, r_end_year))
+  data <- na.omit(data)
 }
 
 data$response <- data[["rdev"]]

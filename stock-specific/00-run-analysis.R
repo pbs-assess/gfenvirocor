@@ -6,20 +6,34 @@ devtools::load_all()
 
 # plotting options
 theme_set(ggsidekick::theme_sleek())
-FRENCH <- FALSE
-if (FRENCH) options(OutDec = ",")
 
-species <- "Lingcod"
-stock <- "Coastwide"
+FRENCH <- FALSE
+## all new environmental variables can be added to the rosettafish dictionary
+## and then everything can be rerun to produce french versions of plots
+## ultimately code could be modified to save the component part of the figures instead of the timeseries figures themselve to avoid rerunning all iterations
+## FRENCH <- FALSE
+# FRENCH <- TRUE
+## if you've updated the package and want to reload it without restarting R
+# detach("package:rosettafish", unload=TRUE)
+
+# species <- "Yelloweye Rockfish"
+# stock <- "Outside"
+
+species <- "Dover Sole"
+stock_name <- "Dover Sole"
+
 set_utm_crs <- 32609
 
-spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
+spp <- gsub(" ", "-", gsub("\\/", "-", tolower(stock_name)))
 
 # create directories
 dir.create(paste0("stock-specific/", spp, "/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/data/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/figs/"), showWarnings = FALSE)
 dir.create(paste0("stock-specific/", spp, "/output/"), showWarnings = FALSE)
+
+# TODO: describe generation of SS3 outputs
+## maybe a sample of Nick's code here?
 
 ## Prep SS3 outputs ----
 out_sum <- readRDS(paste0("stock-specific/",spp,"/data/sum.rdata"))
@@ -34,19 +48,19 @@ format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
 ## Set spatiotemporal scales ----
 
 # define depths of interest
-# depth ranges for Love 2011
-species_min <- 3
-species_max <- 400
+# depth ranges (could be from Love 2011)
+species_min <- ###
+species_max <- ###
 
-spawn_min <- 3
-spawn_max <- 100
+spawn_min <- ##
+spawn_max <- ###
 
-juv_min <- 20
-juv_max <- 75 # changed from 100, need to rerun recruitment stuff
+juv_min <- ##
+juv_max <- ##
 
 # depth range from our survey data encompassing 95% of this species’ biomass
-summer_min <- 40
-summer_max <- 278
+summer_min <- ##
+summer_max <- ###
 
 # define months of interest
 spawning_months <- c(1,2,3)
@@ -187,28 +201,6 @@ dvr <- bind_rows(ds,dp,dj)
 
 saveRDS(dvr, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
-dvs2 <- bind_rows(
-  spawn_o2
-  # ,spawn_t
-  # ,spawn_sst
-  ,spawn_s
-  # ,pelagic_pdo
-  ,pelagic_o2
-  ,pelagic_sstoi
-  ,pelagic_p
-  ,npgo2
-  # ,cope.shelf.sb
-  ,cope.shelf.b
-  ,cope.shelf.s
-  ,cope.shelf.n
-  # ,juv_pp
-  # # ,cope.shelf.n
-  # # ,juv_herr
-  ,herr_ssb
-  # ,ssb0
-  # ,alpi0
-)
-saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
 
 cond_months <- c(4,5,6)
 
@@ -278,29 +270,53 @@ set_priors <- c(
   brms::set_prior("normal(0, 10)", class = "Intercept")
   )
 
-## Recruitment analysis ----
+## Recruitment analysis PART 1----
 # little environmental and age data pre-1995
 year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
-start_year <- 1975 # 1978 is first year with significant age data
-# end_year <- year_range[2] # for recruitment analysis
-end_year <- 2019 # for recruitment analysis
+r_start_year <- ## # first year with significant age data
+r_end_year <- # last year informed by age or length data
+c_start_year <- ## # first year with condition data
+c_end_year <- ## # last year with condition data
+
+
+## FRENCH argument doesn't matter until this point,
+## so can also be changed here as needed
+# FRENCH <- FALSE
+# FRENCH <- TRUE
+
 
 remove_outliers <- NULL
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
-shortlist <- TRUE
-source("analysis/03-correlations-w-recruitment-brms.R")
 
-# try removing outliers
-remove_outliers <- 2016
-shortlist <- FALSE
-source("analysis/03-correlations-w-recruitment-brms.R")
+### if you have extreme outliers
+# # try removing outliers
+# remove_outliers <- 2016
+# shortlist <- FALSE
+# source("analysis/03-correlations-w-recruitment-brms.R")
+
+## Recruitment analysis PART 2----
+## once you've reviewed the part 1 results
+## pick a shortlist from of recruitment variables that represent the strongest relationships
+
+# shortlist <- TRUE
+# dvs2 <- bind_rows(
+#
+# )
+# saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
+#
+# source("analysis/03-correlations-w-recruitment-brms.R")
+
 
 ## Condiiton analyses ----
-start_year <- 2002
-end_year <- 2024
+
+# copy cond-index and cond-index-sims folders from gfcondition to data folder
+# review condition rmd
+c_start_year <- # first year in condition models
+c_end_year <- # last year in condition models
+
 
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
@@ -312,8 +328,6 @@ which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
 
-r_start_year <- 1975
-c_start_year <- 2002
 
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sourced
