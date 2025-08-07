@@ -1,0 +1,328 @@
+---
+title:
+  "DRAFT ENVIRONMENTAL APPENDIX"
+date: #####
+output:
+ csasdown::manureport_word:
+   french: false
+   
+bibliography: refs.bib
+header-includes:
+  -  \usepackage{bm}
+---
+
+```{r set-stock-params, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# copy file to spp folder and select species, prefix for density models, and year-month of analysis to be reported
+# check comments within text sections for needed updates
+species <- "Dover Sole"
+stock_name <- "Dover Sole"
+scenario <- "10_Hessian"
+
+# define depths of interest
+species_min <- 15 # suggested "adult min" in Love is 50, but largish catch of small dover recorded as shallow as 15m by MSSM
+species_max <- 1400
+
+# from 95% of commercially landed biomass February through April
+spawn_min <- 270
+spawn_max <- 620
+
+juv_min <- NA
+juv_max <- NA
+
+# depth range from our survey data encompassing 95% of this species’ biomass density
+# rounded to nearest 5m
+summer_min <- 90
+summer_max <- 460
+
+# define months of interest 
+spawning_months <- "January through March"
+pelagic_months <- "April through December"
+end_pelagic_month <- "December"
+# juv_months <- ####
+condition_months <- "April through June"
+
+rdev_years <- c(1979, 2020)
+cond_years <- c(1996, 2024)
+  
+cond_model_date <- "2025-07"
+  
+full_rdev_var_count <- 20
+# short_rdev_var_count <- ##
+  
+full_cond_var_count <- 7
+# short_cond_var_count <- ##
+```
+
+
+```{r setup, echo=FALSE, cache=FALSE, message=FALSE, results='hide', warning=FALSE}
+# set options that roughly match csasdown ones for compatibility when full assessment is done with csasdown
+library(knitr)
+options(knitr.graphics.error = FALSE) # required for knitting to word
+fig_out_type <- "png"
+fig_asp <- 0.618
+fig_width <- 9
+fig_out_width <- "6in"
+fig_dpi <- 180
+fig_align <- "center"
+fig_pos <- "htb"
+opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.asp = fig_asp,
+  fig.width = fig_width,
+  out.width = fig_out_width,
+  echo = FALSE,
+  cache.comments = FALSE,
+  dev = fig_out_type,
+  dpi = fig_dpi,
+  fig.align = fig_align,
+  fig.pos = fig_pos
+)
+```
+
+
+```{r load-libraries, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+library(dplyr)
+library(readr)
+library(tibble)
+library(csasdown)
+```
+
+
+```{r get-model-data, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
+spp <- gsub(" ", "-", gsub("\\/", "-", tolower(stock_name)))
+
+which_cond_model1 <- cond_model_date
+which_cond_model2 <- paste0(cond_model_date, "-ld0c")
+```
+
+# TIME-SERIES REGRESSIONS BETWEEN ENVIRONMENTAL CONDITIONS AND SPECIES BIOLOGY {#app:envr-cond}
+
+To examine how environmental conditions may affect `r species` productivity, we used Bayesian time-series regressions to account for temporal autocorrelation and propagate uncertainty in our estimates of species biology.
+
+## ENVIRONMENTAL DATA SOURCES AND SPATIOTEMPORAL AGGREGATION
+We selected a relevant subset of oceanographic and biotic variables primarily from those available in the PACea R package (@pacea; Figure \@ref(fig:ev-indices)).
+Of the oceanographic indices available, we focused on ...
+
+<!-- Pacific Decadal Oscillation (PDO) and North Pacific Gyre Oscillation (NPGO). -->
+<!-- Notes on indices: -->
+<!-- A negative phase of the PDO is associated with colder temperatures [@mantua1997] and recruitment in Pacific Halibut [@clark2002]. -->
+<!-- NPGO is a related index where the positive phase is associated with strong westerly winds, cool winters, and primary production on a two year lag [@dilorenzo2008; @pena2019]. -->
+
+<!-- Herring? Modify as appropriate -->
+<!-- Pacific Herring are preferred prey of `r species` [@???], so we included recruitment and spawning stock biomass (SSB) indices from the latest stock assessment [@dfo2024herring], which is a statistical catch-at-age model [@cleary2019]. -->
+<!-- We combined estimates across all outside herring stocks to generate two indices of herring abundance representing different life stages. -->
+<!-- However, since herring recruitment is assessed at 2 years of age, it may not represent larval abundance as well as SSB. -->
+
+<!--Copepods? Modify as appropriate -->
+<!-- Copepods a preferred prey for ... `r species` [@???]. -->
+<!-- Therefore, we combined the northern and southern shelf anomalies for the small (southern), medium (boreal) and large (subarctic) sized copepods reported in @galbraith2024. -->
+
+
+In addition to oceanographic, and biological indices, PACea aggregates outputs from the spatial British Columbia continental margin (BCCM) coupled physical-biogeochemical model by @pena2019 including dissolved oxygen concentration, temperature, pH, and salinity, as well as phytoplankton from surface to 10 m. 
+Each of the geochemical variables are estimated for sea surface and sea floor, as well as some intermediate depth strata.
+All variables are available as monthly means from 1993 to 2019 at a resolution of between 4 km^2^ (on the continental shelf and slope excluding 4B) and 100 km^2^ (further offshore) for all of Canada’s Pacific Exclusive Economic Zone.
+Although BCCM includes sea surface temperature, NOAA’s spatial Optimum Interpolation (OI) of sea surface temperature provides a much longer time series; therefore we projected it to the same grid as the BCCM variables and used it instead.
+
+In order to examine potential influences of the above environmental variables on `r species`, we selected environmental variables for specific time periods that were hypothesized to impact recruitment or body condition. 
+We considered annual NPGO on a two year lag as a potential indicator of overall productivity.
+
+Spawning occurs at depths `r spawn_min` to `r spawn_max` [@love2011certainly], so we calculated the mean sea floor oxygen concentration, salinity, and temperature for all cells containing these depths for each month and then took the average of these monthly values for months when spawning is most likely to occur (~`r spawning_months`).
+Current strength is thought to transport of the smallest larvae towards or away from suitable habitats.
+Because we do not yet have appropriately aggregated information on current variability, we use average spawning season PDO and NPGO indices as possible proxies for these types of mechanisms. 
+Larvae are pelagic until `r end_pelagic_month`, when they begin to settle into .... habitats [@???].
+For the larval period (`r pelagic_months`), we calculated mean sea surface oxygen (a possible indicator of surface winds), salinity (possibly related to relative influence of upwelling versus freshwater), temperature, and phytoplankton biomass for all areas less than `r species_max` m deep.
+<!-- Then for the remainder of the first year, we calculated mean sea floor oxygen concentration, salinity, and temperature for depths from `r juv_min` to `r juv_max` m. -->
+<!-- For this period, primary prey are juvenile herring, so we considered herring SSB and recruitment estimates. -->
+For body condition observed during our spring and summer surveys, we calculated the mean from all cells containing depths where 95% of this species’ biomass was captured on these surveys (`r summer_min` to `r summer_max` m).
+We used a mean of April through June values because our body condition indices are estimates generated for the summer solstice, which falls immediately after our period of most intense survey sample collection (Figure \@ref(fig:sample-dates)).
+Of the available variables, we focused on sea floor temperature, oxygen, and salinity specific to depths occupied by `r species` in summer.
+Annual NPGO on a two year lag and PDO mean anomaly for April through June was also included as indicators of correlated oceanographic conditions.
+
+All environmental variables were centered by their mean and scaled by their SD before analysis. 
+The strongest Spearman’s rank correlation coefficient among variables hypothesized to influence any particular developmental period was for 
+<!-- a negative relationship between April to June sea floor salinity and oxygen (-0.85; Figure \@ref(fig:corr-condition)) -->
+, followed by a positive one for ... 
+<!-- January through March PDO and sea floor temperature (0.74; Figure \@ref(fig:corr-spawing)). -->
+A number of other relationships involving physical-biogeochemical variables also had Spreerman’s rank correlations exceeding 0.5.
+
+
+<!-- < fig 1 > -->
+(ref:fig-ev-indices) Our selected oceanographic and biotic indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton, primary production). All except ones for copepods are currently available in the PACea R package. Climate indices are available for more years than are shown here, but BCCM variables are not. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class (condition applies to age > 1).
+
+
+```{r ev-indices, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-ev-indices)"}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/ev-indices.png")))
+```
+
+
+<!-- < fig 2 > -->
+```{r sample-dates, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Distribution of sampling day of year (DOY) for specimens included in the body condition analyses. Dashed grey line indicates the summer solstice."}
+# knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/E-sample-date-hist.png")))
+```
+
+
+<!-- < fig 3 > -->
+```{r corr-spawing, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among annual NPGO index on 2 year lag and variables and indices for spawning months hypothesized to influence egg survival and initial larval transport."}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png")))
+```
+
+
+<!-- < fig 4 > -->
+```{r corr-pelagic, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among variables for pelagic months hypothesized to influence pelagic larval survival."}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png")))
+```
+
+
+<!-- < fig 5 > -->
+```{r corr-juv, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among variables for juvenile months hypothesized to influence first year demersal juvenile survival."}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-juv.png")))
+```
+
+
+<!-- < fig 6 > -->
+```{r corr-condition, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among variables and indices for early survey season leading up to summer solstice hypothesized to influence body condition."}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png")))
+```
+
+
+\clearpage
+
+## BIOLOGICAL RESPONSE VARIABLES WITH UNCERTAINTY
+
+To assess possible impacts of the above environmental variables, we considered both recruitment and body condition as biological responses.
+To propagate uncertainty in the estimation of the biological responses, we extracted 100 MCMC samples of the annual recruitment deviations from the base model [similar to an approach used in @haigh2019].
+However, we restricted analysis to the period from `r rdev_years[1]` through `r rdev_years[2]`, the period for which the age data included in this assessment was sufficient to inform recruitment estimates.
+Likewise, we took 100 draws from the joint parameter precision matrix for each condition index (see Appendix \@ref(app:envr-cond)).
+Condition indices span `r cond_years[1]` through `r cond_years[2]` (Figure \@ref(fig:cond-indices) and Figure \@ref(fig:cond-map-mm)).
+
+Recruitment deviations already represent mean-centered multiplicative deviations from expected recruitment given each year’s estimate of female spawning stock biomass, therefore we entered them into the models without transformation.
+Condition index values were centered on a Le Cren’s score of 1 which represents the expected length-weight relationship and scaled within individual sample draws to represent 1 SD of change in body condition regardless of differences in estimated variability across different draws [@lecren1951].
+
+## TIME-SERIES REGRESSION
+
+For each sampled time-series of our biological responses, we fit separate Bayesian hierarchical generalized linear mixed effects models (GLMMs) to assess the effect of each environmental variable, or the effect of the previous year’s body condition on recruitment deviations.
+All predictor variables were fit as a second order orthogonal polynomial to allow for a curved predictor-response relationship and we accounted for temporal autocorrelation using a stationary autoregressive process with first-order (AR1) correlation
+
+<!-- < eqn 1 > -->
+$$
+\begin{aligned}
+y_t &= \beta_0 + \beta_1 D_{1t} + \beta_2 D_{2t} + \epsilon_t,\\
+\epsilon_{t=1} &\sim \mathrm{Normal}(0, \sigma^2),\\
+\epsilon_{t>1} &\sim \mathrm{Normal}(\rho_{\epsilon{t-1}}, \sigma^2),
+\end{aligned}
+$$
+
+where $t$ is year, $y$ is an annual recruitment or body condition deviation sample, $\beta_1$ and $\beta_2$ are coefficients, $D_{1t}$ is the first orthogonal component of the polynomial (representing the linear slope portion), $D_{2t}$ is the second orthogonal component of the polynomial (representing curvature), $\rho_{\epsilon{t}}$ is the correlation between subsequent time steps, and $\sigma$ represents the observation error SD.
+The first time step is given a mean-zero prior with the same SD.
+We assigned weakly informative priors on all parameters: N(0,10) priors on all $\beta$ parameters, N(0,0.5) on the $\rho$ and a half-t(3, 0, 2) prior (i.e., degrees of freedom of 3 and scale of 2) on $\sigma$. 
+The slightly stronger prior for $\rho$ is based on an expectation that both recruitment and body condition should not be highly correlated from one year to the next.
+
+Posteriors from 100 models representing the same biological response and environmental variable combination were then combined to provide estimates with uncertainty that incorporated both uncertainty in the biological values (derived from our stock assessment or the spatial body condition models) and in their relationship with each variable. 
+<!-- Option if this is an extreme outlier for this species: -->
+<!-- Given that exceptional recruitment events occurred for several species in Canadian Pacific waters in 2016, we also tested the recruitment relationships with this outlier excluded.    -->
+
+We fit these models in Stan [@carpenter2017] using the R package brms [@burkner2017] and cmdstanr [@gabry2024].
+Stan implements the No-U-Turn Hamiltonian Markov chain Monte Carlo algorithm [@hoffman2014] to perform Bayesian statistical inference.
+For each sample draw we ran one chain with 1000 iterations (500 warm-up, adapt delta of 0.9 or 0.95); therefore our final inference was based on $500 \times 100 = 50000$ iterations.
+We assessed model convergence on a model fit to the mean estimates for each biological variable with 4 chains each with 2000 iterations (1000 warmup).
+All models achieved Rhat (scale-reduction factors) of $< 1.01$ and effective sample sizes of $> 800$ (or 200 per chain).
+
+## RESULTS
+
+<!-- < fig 7 > -->
+(ref:fig-rdev-violins) Density violin plots for all coefficient posteriors from time-series regressions on 100 MCMC samples of recruitment deviations from the base model (from `r rdev_years[1]` through `r rdev_years[2]`). Each violin contains 50000 MCMC samples. Coefficients represent the first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomials, the correlation between subsequent time steps (p), and the observation error SD (sigma). All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase the recruitment deviation by 1
+
+```{r rdev-violins, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-violins)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-100-draws-brms-",full_rdev_var_count,".png")))
+```
+
+<!-- < fig 8 > -->
+(ref:fig-rdev-pred) All predicted relationships between environmental conditions and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]`. The darker shading represents the 95% CI in the predicted second-order orthogonal polynomial (i.e., quadratic) relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample of recruitment deviations from the stock assessment model. Lighter shading indicates a 90% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and the 95% quantiles of observed values in the 100 MCMC samples. Dots representing earlier years are progressively more transparent
+
+```{r rdev-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", fig.cap="(ref:fig-rdev-pred)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-",full_rdev_var_count,".png")))
+```
+
+(ref:fig-rdev-pred-no-outlier) Same as Figure \@ref(fig:rdev-pred) but with the 2016 recruitment outlier removed
+<!-- < fig 9 > -->
+```{r rdev-pred-no-outlier, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", fig.cap="(ref:fig-rdev-pred-no-outlier)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-",full_rdev_var_count,"-no-outlier.png")))
+```
+
+<!-- < fig 10 > -->
+(ref:fig-rdev-cond) Predicted relationships between body condition in SDs from the mean of each time series for mature females (A, yellow) and mature males (B, turquoise) and recruitment deviations from the base model for 1978 through 2022. The darker shading represents the uncertainty in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each pair of recruitment and body condition samples. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and the 95% quantiles of observed values in the 100 MCMC samples. Horizontal dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the condition index. Dots representing earlier years are progressively more transparent. Density violin plots (C) are as described in Figure \@ref(fig:rdev-violins)
+
+```{r rdev-cond, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-cond)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-cond.png")))
+```
+
+<!-- < fig 11 > -->
+(ref:fig-cond-violins) Density violin plots for all coefficient posteriors from time-series regressions on 100 samples from body condition indices between `r cond_years[1]` and `r cond_years[2]`. NPGO, PDO and SST use this whole timeseries, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. Each violin contains 50000 samples of coefficients representing the first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomials, the correlation between subsequent time steps (p), and the observation error SD (sigma). All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase body condition by 1 SD
+
+```{r cond-violins, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-cond-violins)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-100-draws-brms-",full_cond_var_count,".png")))
+```
+
+<!-- < fig 12 > -->
+(ref:fig-cond-pred) All predicted relationships between environmental conditions and body condition between `r cond_years[1]` and `r cond_years[2]` for immatures (left column), mature females (middle column), and mature males (right column). The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of the condition index). Dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the index. Dots representing earlier years are progressively more transparent. 
+<!-- Include for relevant variables: -->
+<!-- NPGO, PDO and SST use this whole time series, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
+
+```{r cond-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="5in", fig.cap="(ref:fig-cond-pred)"}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-timeseries-", scenario, "-100-draws-brms-",full_cond_var_count,".png")))
+```
+
+\clearpage
+
+# For Results section of assessment
+
+## ENVIRONMENTAL CONDITIONS AND SPECIES BIOLOGY
+
+### Environmental conditions potentially impacting recruitment
+
+Recruitment deviations (**TODO**) in `r species` were found to be **TODO** (Figure \@ref(fig:rdev-violins-short)). 
+<!-- describe more interesting results -->
+<!-- ... somewhat concave down relationships may be the result of additive effects of some of these biological community variables, particularly those which are negatively correlated with each other (Figure \@ref(fig:corr-pelagic)).  -->
+<!-- A strong concave up relationship between recruitment and SST during the pelagic larval period appears driven mostly by very high recruitment in 2016, which also has the highest April through May average temperature.  -->
+<!-- Removing the 2016 recruitment outlier resulted in ... (Figure \@ref(fig:rdev-pred-no-outlier)).  -->
+
+(ref:fig-rdev-violins-short)
+Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 MCMC samples of recruitment deviations between `r rdev_years[1]` and `r rdev_years[2]` from the base model. Each violin contains 50000 MCMC samples. All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase the recruitment deviation by 1.
+
+```{r rdev-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-violins-short)"}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-100-draws-brms-", short_rdev_var_count ,"-just-poly-short.png")))
+```
+
+
+(ref:fig-rdev-pred-short) The five strongest predicted polynomial relationships between environmental conditions and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]` for the linear components (????) and the curvature components (????) of the polynomials. The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and 95% quantiles of observed values in the 100 MCMC samples. Dots representing earlier years are progressively more transparent.
+
+```{r rdev-pred-short, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-pred-short)"}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-", short_rdev_var_count ,"-short.png")))
+```
+
+
+### Body condition indices
+
+See draft condition appendix.
+
+### Environmental conditions potentially impacting body condition 
+
+<!-- Describe effects: -->
+<!-- The direction of all effects was relatively consistent across all sex and maturity classes; however, relative strength of each effect varied between classes (Figure \@ref(fig:cond-violins-short)). -->
+<!-- ???? showed relatively strong positive correlations with condition for all classes. -->
+<!-- For immature `r species`, ???? had by far the strongest effect, while ???? had the strongest positive correlation with mature male condition.  -->
+<!-- Only mature female condition seemed consistently associated with ????. -->
+
+
+(ref:fig-cond-violins-short) Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 samples from the sex- and maturity-specific annual body condition indices for all available years (`r cond_years[1]`-`r cond_years[2]`). Each violin contains 50000 samples of the parameter distribution. 
+<!-- NPGO, PDO and SST use this whole time series, Pacific Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
+
+```{r cond-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-cond-violins-short)"}
+# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-100-draws-brms-",short_cond_var_count,"-just-poly.png")))
+```
+
+## References
