@@ -19,8 +19,11 @@ FRENCH <- FALSE
 # species <- "Yelloweye Rockfish"
 # stock <- "Outside"
 
-species <- "Dover Sole"
-stock_name <- "Dover Sole"
+# species <- "Dover Sole"
+# stock_name <- "Dover Sole"
+
+species <- "Pacific Cod"
+stock_name <- "Pacific Cod WCVI"
 
 set_utm_crs <- 32609
 
@@ -40,10 +43,50 @@ out_sum <- readRDS(paste0("stock-specific/",spp,"/data/sum.rdata"))
 n_draws <- 100
 scenario <- out_sum$model_name
 
+# check years with deviations, ie. excluding any forecast years
+r_year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
+
 ## only run if first time
 format_ss3_summary(out_sum, species, stock)
 out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc.rdata"))
+
+# MCMC - function doesn't return anything. Writes Rdata files.
 format_mcmc(out_mcmc, species, stock, scenario, samples = n_draws)
+
+
+
+## OR provide params for other custom outputs ----
+
+n_draws <- 100
+scenario <- "base"
+
+# e.g., iscam
+# Note that the mcmc csv files have to be in a folder called mcmc within iscamdir
+# but there seems to be a quirk, where they also have to be in the root directory of iscamdir
+iscamdir <- here::here(paste0("stock-specific/",spp,"/data/1a_3CD_2023_reference"))
+# This gets both MPD and MSE outputs in one list
+iscam_pcod_output <- MSEtool::load.iscam.files(iscamdir)
+
+# load.iscam.files is not accounting for burnin, even with a burnin argument set,
+#  so remove burnin samples in the format-mcmc-iscam function
+# Set burnin argument to the number of samples to remove from the beginning of the mcmc samples
+# Pick the main commercial gear for Ut, in most cases it will be the first gear in iscam outputs
+format_mcmc_iscam(iscam_pcod_output,
+                  species = species,
+                  stock = stock_name,
+                  scenario = scenario,
+                  samples = n_draws,
+                  seed = 10,
+                  burnin = 1000,
+                  main_commercial_gear = 1)
+
+# check years with deviations, ie. excluding any forecast years
+df <- readRDS(paste0("stock-specific/", spp, "/output/mcmc/",scenario,"/df1.RData")) |>
+  filter(!is.na(rdev))
+
+r_year_range <- range(df$year)
+
+
 
 ## Set spatiotemporal scales ----
 
@@ -271,8 +314,6 @@ set_priors <- c(
   )
 
 ## Recruitment analysis PART 1----
-# little environmental and age data pre-1995
-year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
 r_start_year <- ## # first year with significant age data
 r_end_year <- # last year informed by age or length data
