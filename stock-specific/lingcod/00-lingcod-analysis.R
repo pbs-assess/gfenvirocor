@@ -10,9 +10,11 @@ theme_set(ggsidekick::theme_sleek())
 
 species <- "Lingcod"
 stock <- "Coastwide"
+stock_name <- "Lingcod"
 set_utm_crs <- 32609
 
 spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
+
 
 # create directories
 dir.create(paste0("stock-specific/", spp, "/"), showWarnings = FALSE)
@@ -114,23 +116,11 @@ pelagic_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Apr-May)", pelagic
 pelagic_s <- extract_enviro_var(bccm_surface_salinity(), "Surface salinity (Apr-May)", pelagic_months, sp_grid)
 pelagic_p <- extract_enviro_var(bccm_phytoplankton(), "Phytoplankton (Apr-May)", pelagic_months, sp_grid)
 
-
-# cope.ns.b <- extract_enviro_var(cops.ns.boreal, "Boreal Copepods (North VI)")
-# cope.ns.s <- extract_enviro_var(cops.ns.south, "Southern Copepods (North VI)")
-# cope.ns.n <- extract_enviro_var(cops.ns.subarctic, "Subarctic copepods (North VI)")
-# cope.ss.b <- extract_enviro_var(cops.ss.boreal, "Copepods - Boreal (South VI)")
-# cope.ss.s <- extract_enviro_var(cops.ss.south, "Copepods - Southern (South VI)")
-# cope.ss.n <- extract_enviro_var(cops.ss.subarctic, "Copepods - Subarctic (South VI)")
-
 cope.shelf.b <- extract_enviro_var(cops.shelf.boreal, "Copepods - medium (VI shelf)")
 cope.shelf.s <- extract_enviro_var(cops.shelf.south, "Copepods - small (VI shelf)")
-
-# cope.shelf.sb <- extract_enviro_var(cops.shelf.nonarctic, "Copepods - small  (VI shelf)")
 cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - large (VI shelf)")
 
 
-# juv_pdo <- extract_enviro_var(pdo, "PDO (Jun-Dec)", juv_months)
-# juv_npgo <- extract_enviro_var(npgo, "NPGO (Jun-Dec)", juv_months)
 ssb0 <- extract_enviro_var(conspecific_ssb, "Lingcod SSB")
 juv_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Seafloor O2 (Jun-Dec)", juv_months, juv_grid)
 juv_t <- extract_enviro_var(bccm_bottom_temperature(),  "Seafloor temperature (Jun-Dec)", juv_months, juv_grid)
@@ -138,21 +128,13 @@ juv_sst <- extract_enviro_var(oisst_month_grid26, "SST (Jun-Dec)", juv_months, j
 juv_s <- extract_enviro_var(bccm_bottom_salinity(),  "Seafloor salinity (Jun-Dec)", juv_months, juv_grid)
 juv_herr <- extract_enviro_var(herring_recuits,  "Herring recruitment")
 herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
-# juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jun-Dec)", juv_months, juv_grid)
-# juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Current year)", c(spawning_months, pelagic_months), sp_grid)
 juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-Jun)", c(spawning_months, pelagic_months, condition_months), juv_grid)
 
 ds <- bind_rows(
   npgo2
-  # ,alpi0
-  # ,npcbi0
-  # ,npgo1
   ,spawn_o2
   ,spawn_t
-  # ,spawn_sst
   ,spawn_s
-  # ,pdo0
-  # ,npgo0
   ,spawn_pdo
   ,spawn_npgo
 )
@@ -162,24 +144,12 @@ dp <- bind_rows(
   ,pelagic_sstoi
   ,pelagic_s
   ,pelagic_p
-  # ,pelagic_pdo
-  # ,pelagic_npgo
-  ## maybe drop these since more habitat in the south?
-  # ,cope.ns.b
-  # ,cope.ns.s
-  # ,cope.ns.n
-  # ,cope.ss.b
-  # ,cope.ss.s
-  # ,cope.ss.n
   ,cope.shelf.b
   ,cope.shelf.s
   ,cope.shelf.n
-  # ,cope.shelf.sb
 )
 
 dj <- bind_rows(
-  # juv_pdo
-  # ,juv_npgo
   juv_o2
   ,juv_t
   # ,juv_sst
@@ -196,24 +166,13 @@ saveRDS(dvr, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
 dvs2 <- bind_rows(
   spawn_o2
-  # ,spawn_t
-  # ,spawn_sst
   ,spawn_s
-  # ,pelagic_pdo
   ,pelagic_o2
   ,pelagic_sstoi
   ,pelagic_p
   ,npgo2
-  # ,cope.shelf.sb
-  # ,cope.shelf.b
   ,cope.shelf.s
-  # ,cope.shelf.n
-  # ,juv_pp
-  # # ,cope.shelf.n
-  # # ,juv_herr
   ,herr_ssb
-  # ,ssb0
-  # ,alpi0
 )
 saveRDS(dvs2, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs-shortlist.rds"))
 
@@ -233,18 +192,12 @@ herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 
 dvc <- bind_rows(
   cond_pdo
-  # ,npcbi0
-  # ,cond_npgo
-  # ,cond_npgo1
   ,cond_npgo2
-  # ,cond_pp
   ,cond_o2
   ,cond_t
   ,cond_s
   ,cond_sstoi
   ,herr_ssb
-  # ,juv_herr
-  # ,juv_pp
 )
 
 saveRDS(dvc, paste0("stock-specific/",spp,"/data/envrio-vars-for-condition.rds"))
@@ -289,16 +242,19 @@ set_priors <- c(
 # little environmental and age data pre-1995
 year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"])
 
-start_year <- 1975 # 1978 is first year with significant age data
-# end_year <- year_range[2] # for recruitment analysis
-end_year <- 2018 # for recruitment analysis
+r_start_year <- 1975 # 1978 is first year with significant age data
+r_end_year <- 2018
+
 
 remove_outliers <- NULL
 
 ## FRENCH argument doesn't matter until this point,
-## so can be changed here as needed
+## so can also be changed here as needed
 # FRENCH <- FALSE
 # FRENCH <- TRUE
+## if you've loaded and updated the package and want to reload it without restarting R
+## detach("package:rosettafish", unload=TRUE)
+## but scripts should run without package being loaded
 
 shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
@@ -312,21 +268,19 @@ shortlist <- FALSE
 source("analysis/03-correlations-w-recruitment-brms.R")
 
 ## Condition analyses ----
-start_year <- 2002
+c_start_year <- 2002
+c_end_year <- 2024
 
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
 
 
-end_year <- 2024
 control_list <- list(adapt_delta = 0.9)
 which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
 
-r_start_year <- 1975
-c_start_year <- 2002
 
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sourced

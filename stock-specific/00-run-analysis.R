@@ -24,6 +24,8 @@ FRENCH <- FALSE
 
 species <- "Pacific Cod"
 stock_name <- "Pacific Cod WCVI"
+## mesh cutoff, usually 20 for coastwide stocks, sometimes smaller for smaller stock areas
+cutoff <- 20
 
 set_utm_crs <- 32609
 
@@ -89,6 +91,14 @@ df <- readRDS(paste0("stock-specific/", spp, "/output/mcmc/",scenario,"/df1.RDat
 r_year_range <- range(df$year)
 
 
+  r_start_year <- ## # first year with significant age data
+  r_end_year <- # last year informed by age or length data
+
+  # copy cond-index and cond-index-sims folders from gfcondition to data folder
+  # review condition rmd
+  c_start_year <- # first year in condition models
+  c_end_year <- # last year in condition models
+
 
 ## Set spatiotemporal scales ----
 
@@ -112,7 +122,7 @@ spawning_months <- c(1,2,3)
 pelagic_months <- c(4,5)
 juv_months <- c(6,7,8,9,10,11,12)
 # condition_months_A <- spawning_months
-condition_months <- c(4,5,6)
+cond_months <- c(4,5,6)
 
 
 # this uses a new_grid created with 00-pacea-grid.R
@@ -195,6 +205,7 @@ herr_ssb <- extract_enviro_var(herring_ssb, "Herring SSB")
 # juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Current year)", c(spawning_months, pelagic_months), sp_grid)
 juv_pp <- extract_enviro_var(bccm_primaryproduction(), "Primary production (Jan-Jun)", c(spawning_months, pelagic_months, condition_months), juv_grid)
 
+#spawning
 ds <- bind_rows(
   npgo2
   # ,alpi0
@@ -210,6 +221,7 @@ ds <- bind_rows(
   ,spawn_npgo
 )
 
+# pelagic larvae
 dp <- bind_rows(
   pelagic_o2
   ,pelagic_sstoi
@@ -230,6 +242,7 @@ dp <- bind_rows(
   # ,cope.shelf.sb
 )
 
+# settled juveniles
 dj <- bind_rows(
   # juv_pdo
   # ,juv_npgo
@@ -318,12 +331,6 @@ set_priors <- c(
 
 ## Recruitment analysis PART 1----
 
-r_start_year <- ## # first year with significant age data
-r_end_year <- # last year informed by age or length data
-c_start_year <- ## # first year with condition data
-c_end_year <- ## # last year with condition data
-
-
 ## FRENCH argument doesn't matter until this point,
 ## so can also be changed here as needed
 # FRENCH <- FALSE
@@ -355,16 +362,6 @@ source("analysis/03-correlations-w-recruitment-brms.R")
 
 
 ## Condiiton analyses ----
-
-## mesh cutoff, usually 20 for coastwide stocks, sometimes smaller for smaller stock areas
-cutoff <- 20
-
-# copy cond-index and cond-index-sims folders from gfcondition to data folder
-# review condition rmd
-c_start_year <- # first year in condition models
-c_end_year <- # last year in condition models
-
-
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-02"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
@@ -375,6 +372,6 @@ which_cond_model2 <- "2025-02-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
 
-
+start_year <- min(r_start_year, c_start_year)
 final_year <- 2025 # for variable plotting
 # source("analysis/02-plot-vars.R") # not working sourced

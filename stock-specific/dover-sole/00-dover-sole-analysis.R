@@ -22,6 +22,8 @@ FRENCH <- FALSE
 species <- "Dover Sole"
 stock <- "Coastwide"
 stock_name <- "Dover Sole"
+## mesh cutoff, usually 20 for coastwide stocks, sometimes smaller for smaller stock areas
+cutoff <- 20
 
 set_utm_crs <- 32609
 
@@ -71,7 +73,7 @@ spawning_months <- c(1,2,3,4,5) # same as winter in the stock assessment
 pelagic_months <- c(4,5,6,7,8,9,10,11,12)
 juv_months <- NULL#
 # condition_months_A <- spawning_months
-condition_months <- c(4,5,6)
+cond_months <- c(4,5,6)
 
 
 # this uses a new_grid created with 00-pacea-grid.R
@@ -113,6 +115,7 @@ npgo2 <- extract_enviro_var(npgo, "NPGO (2 yrs prior)", c(spawning_months, pelag
 
 spawn_pdo <- extract_enviro_var(pdo, "PDO (Jan-May)", spawning_months)
 spawn_npgo <- extract_enviro_var(npgo, "NPGO (Jan-May)", spawning_months)
+spawn_npcbi <- extract_enviro_var(npcbi, "Current bifurcation", spawning_months)
 spawn_o2 <- extract_enviro_var(bccm_bottom_oxygen(), "Seafloor O2 (Jan-May)", spawning_months, spawn_grid)
 spawn_t <- extract_enviro_var(bccm_bottom_temperature(), "Seafloor temperature (Jan-May)", spawning_months, spawn_grid)
 spawn_sstoi <- extract_enviro_var(oisst_month_grid26, "SST (Jan-May)", spawning_months, spawn_grid)
@@ -153,7 +156,7 @@ cope.shelf.n <- extract_enviro_var(cops.shelf.subarctic, "Copepods - large (VI s
 
 
 
-
+# spawning
 ds <- bind_rows(
   npgo2
   # ,alpi0
@@ -167,6 +170,7 @@ ds <- bind_rows(
   ,spawn_npgo
 )
 
+#pelagic larvae
 dp <- bind_rows(
   pdo0
   ,npgo0
@@ -203,7 +207,7 @@ dvr <- bind_rows(ds,dp,dj)
 saveRDS(dvr, paste0("stock-specific/",spp,"/data/envrio-vars-for-rdevs.rds"))
 
 
-cond_months <- c(4,5,6)
+# cond_months <- c(4,5,6)
 
 cond_pdo <- extract_enviro_var(pdo, "PDO (Apr-Jun)", cond_months)
 cond_npgo <- extract_enviro_var(npgo, "NPGO (Apr-Jun)", cond_months)
