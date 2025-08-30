@@ -45,7 +45,8 @@ rdev_years <- c(1979, 2020)
 cond_years <- c(1996, 2024)
   
 cond_model_date <- "2025-07"
-  
+scenario <- "10_Hessian"
+
 full_rdev_var_count <- 20
 # short_rdev_var_count <- ##
   
@@ -247,18 +248,25 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-envi
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-",full_rdev_var_count,".png")))
 ```
 
-(ref:fig-rdev-pred-no-outlier) Same as Figure \@ref(fig:rdev-pred) but with the 2016 recruitment outlier removed
 <!-- < fig 9 > -->
-```{r rdev-pred-no-outlier, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", fig.cap="(ref:fig-rdev-pred-no-outlier)."}
-knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-",full_rdev_var_count,"-no-outlier.png")))
-```
+<!-- (ref:fig-rdev-pred-no-outlier) Same as Figure \@ref(fig:rdev-pred) but with the 2016 recruitment outlier removed -->
+
+<!-- ```{r rdev-pred-no-outlier, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", fig.cap="(ref:fig-rdev-pred-no-outlier)."} -->
+<!-- knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-",full_rdev_var_count,"-no-outlier.png"))) -->
+<!-- ``` -->
+
+\clearpage
 
 <!-- < fig 10 > -->
-(ref:fig-rdev-cond) Predicted relationships between body condition in SDs from the mean of each time series for mature females (A, yellow) and mature males (B, turquoise) and recruitment deviations from the base model for 1978 through 2022. The darker shading represents the uncertainty in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each pair of recruitment and body condition samples. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and the 95% quantiles of observed values in the 100 MCMC samples. Horizontal dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the condition index. Dots representing earlier years are progressively more transparent. Density violin plots (C) are as described in Figure \@ref(fig:rdev-violins)
+(ref:fig-rdev-cond) Predicted relationships between body condition in SDs from the mean of each time series for mature females (A, yellow) and mature males (B, turquoise) and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]`. The darker shading represents the uncertainty in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each pair of recruitment and body condition samples. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and the 95% quantiles of observed values in the 100 MCMC samples. Horizontal dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the condition index. Dots representing earlier years are progressively more transparent
 
 ```{r rdev-cond, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-cond)."}
-knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-cond.png")))
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-condition-corr-timeseries-",scenario,"-start-", rdev_years[1], "-100-draws-bmrs-poly-lag.png")))
 ```
+
+<!-- Option to add violin plots -->
+<!-- Density violin plots (C) are as described in Figure \@ref(fig:rdev-violins) -->
+
 
 <!-- < fig 11 > -->
 (ref:fig-cond-violins) Density violin plots for all coefficient posteriors from time-series regressions on 100 samples from body condition indices between `r cond_years[1]` and `r cond_years[2]`. NPGO, PDO and SST use this whole timeseries, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. Each violin contains 50000 samples of coefficients representing the first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomials, the correlation between subsequent time steps (p), and the observation error SD (sigma). All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase body condition by 1 SD
@@ -268,13 +276,14 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-envi
 ```
 
 <!-- < fig 12 > -->
-(ref:fig-cond-pred) All predicted relationships between environmental conditions and body condition between `r cond_years[1]` and `r cond_years[2]` for immatures (left column), mature females (middle column), and mature males (right column). The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of the condition index). Dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the index. Dots representing earlier years are progressively more transparent. 
 <!-- Include for relevant variables: -->
 <!-- NPGO, PDO and SST use this whole time series, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
+(ref:fig-cond-pred) All predicted relationships between environmental conditions and body condition between `r cond_years[1]` and `r cond_years[2]` for immatures (left column), mature females (middle column), and mature males (right column). The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of the condition index). Dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the index. Dots representing earlier years are progressively more transparent 
 
-```{r cond-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="5in", fig.cap="(ref:fig-cond-pred)"}
+```{r cond-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="5in", fig.cap="(ref:fig-cond-pred)."}
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-timeseries-", scenario, "-100-draws-brms-",full_cond_var_count,".png")))
 ```
+
 
 \clearpage
 
