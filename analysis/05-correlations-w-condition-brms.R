@@ -90,7 +90,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
     dd <- purrr::map_dfr(seq_len(n_draws), \(j) {
       .draw <- readRDS(paste0(
         "stock-specific/",spp,"/data/cond-index-sims/", which_cond_model2, "/cond-index-sims-", group,
-        "-", spp, "-", which_cond_model2, "-20-km.rds"
+        "-", spp, "-", which_cond_model2, "-", cutoff ,"-km.rds"
       )) |>
         filter(
           .iteration == j
@@ -214,7 +214,6 @@ for (i in seq_along(sort(unique(data$var_names)))) {
 
       nd$lwr2 <- apply(pred2, 2, quantile, probs = 0.025)
       nd$upr2 <- apply(pred2, 2, quantile, probs = 0.975)
-
 
       if (FRENCH) options(OutDec = ",")
       (p[[idx]] <- ggplot() +
@@ -377,7 +376,7 @@ ggsave(paste0(
   "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
   "/cond-enviro-corr-timeseries-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
-), width = 7, height = 10)
+), width = 7, height = (length(p)/3)*2)
 
 
 coefs <- readRDS(paste0("stock-specific/",spp,"/output/cond-enviro-corr-coefs-",
@@ -454,7 +453,7 @@ ggsave(paste0(
   "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
   "/cond-enviro-corr-coef-violins-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), "-just-poly.png"
-), width = 5, height = 4.75)
+), width = 5, height = (length(p)/3) *1.6)
 
 
 coefs2 |>
@@ -489,7 +488,7 @@ ggsave(paste0(
   "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
   "/cond-enviro-corr-coef-violins-by-group-", scenario, "-", n_draws, "-draws-brms-",
   length(unique(data$var_names)), ".png"
-), width = 5.5, height = 4.5)
+), width = 5.5, height = (length(p)/3) *1.5)
 
 options(op)
 

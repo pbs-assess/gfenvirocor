@@ -67,6 +67,8 @@ iscamdir <- here::here(paste0("stock-specific/",spp,"/data/1a_3CD_2023_reference
 # This gets both MPD and MSE outputs in one list
 iscam_pcod_output <- MSEtool::load.iscam.files(iscamdir)
 
+age_recruited <- iscam_pcod_output$dat$start.age
+
 # load.iscam.files is not accounting for burnin, even with a burnin argument set,
 #  so remove burnin samples in the format-mcmc-iscam function
 # Set burnin argument to the number of samples to remove from the beginning of the mcmc samples
@@ -133,12 +135,13 @@ load("data/oisst_month_grid26.rda") # not yet added to pacea
 
 # which community variables are we not interested in
 euphausids <- NULL
-conspecific_ssb <- TRUE
+conspecific_ssb <- NULL
 
 # check options
 # unique(herring_recruitment$region)
 herring_stocks <- c("HG", "PRD", "CC", "WCVI")
 copepod_regions <- c("Southern Vancouver Island Shelf","Northern Vancouver Island Shelf")
+copepod_months <- NULL #c(pelagic_months)
 
 source("analysis/01-get-community-vars.R")
 
@@ -352,6 +355,9 @@ source("analysis/03-correlations-w-recruitment-brms.R")
 
 
 ## Condiiton analyses ----
+
+## mesh cutoff, usually 20 for coastwide stocks, sometimes smaller for smaller stock areas
+cutoff <- 20
 
 # copy cond-index and cond-index-sims folders from gfcondition to data folder
 # review condition rmd
