@@ -4,9 +4,12 @@ stock-specific/*/output/
 stock-specific/*/figs/
 stock-specific/*/figs-french/
 
+*.docx
+*.zip
 *.rdata
 *.rds
 *.png
+*.pdf
 
 # History files
 .Rhistory
