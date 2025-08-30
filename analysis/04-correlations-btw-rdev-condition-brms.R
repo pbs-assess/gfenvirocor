@@ -27,6 +27,7 @@ d1 <- purrr::map_dfr(f1, readRDS) %>%
 min_est <- min(d1$est)
 max_est <- max(d1$est)
 
+# start_year <- max(r_start_year, c_start_year)
 yrs <- sort(unique(d1$year))
 
 dd1 <- d1 |>
@@ -140,7 +141,7 @@ for (i in seq_along(sort(unique(data$var_names)))) {
   .cov <- readRDS(paste0(
       "stock-specific/",spp,"/data/cond-index-sims/",
       which_cond_model1, "/cond-index-sims-", group,
-      "-", spp, "-", which_cond_model1, "-20-km.rds"
+      "-", spp, "-", which_cond_model1, "-", cutoff ,"-km.rds"
     )) |>
       filter(.iteration == j) |>
       mutate(
@@ -156,7 +157,8 @@ for (i in seq_along(sort(unique(data$var_names)))) {
         ungroup() ## lag condition
     }
 
-    .d <- left_join(.draw, .cov) |> filter(year >= start_year & year <= end_year)
+    .d <- left_join(.draw, .cov) |>
+      filter(year >= max(r_start_year, c_start_year) & year <= min(r_end_year, c_end_year))
     .d <- na.omit(.d)
     .d$response <- .d[["rdev"]]
     .d$var_names <- .d[["type"]]
@@ -361,7 +363,7 @@ ggsave(
   paste0(
     "stock-specific/",spp,"/figs", if(FRENCH){"-french"},
     "/rdev-condition-corr-timeseries-", scenario,
-    "-start", start_year, "-", n_draws, "-draws-bmrs",
+    "-start-", c_start_year, "-", n_draws, "-draws-bmrs",
     if(poly){"-poly"}, if(lag){"-lag"}, ".png"
   ),
   width = 7, height = 3
@@ -395,8 +397,8 @@ coefs2 |>
 
 
 ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
-              "/rdev-condition-corr-coef-violins-", scenario, "-start",
-              start_year, "-", n_draws, "-draws-bmrs",
+              "/rdev-condition-corr-coef-violins-", scenario, "-start-",
+              c_start_year, "-", n_draws, "-draws-bmrs",
               if(poly){"-poly"}, if(lag){"-lag"}, ".png"),
        width = if(FRENCH){7.7}else{6}, height = 1.5)
 
@@ -422,8 +424,8 @@ coefs2 |>
   )
 
 ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
-              "/rdev-condition-corr-coef-violins-", scenario, "-start",
-              start_year, "-", n_draws, "-draws-bmrs",
+              "/rdev-condition-corr-coef-violins-", scenario, "-start-",
+              c_start_year, "-", n_draws, "-draws-bmrs",
               if(poly){"-poly"}, if(lag){"-lag"}, "-inset.png"),
        width = 1.5, height = 2)
 

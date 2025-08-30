@@ -190,17 +190,20 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   saveRDS(coefs, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+    "start-", r_start_year, "-",
     n_draws, "-draws-", length(unique(data$type)),
     if(shortlist){"-short"}, ".rds"
   ))
     saveRDS(p, paste0(
       "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+      "start-", r_start_year, "-",
       n_draws, "-draws-", length(unique(data$type)),
       if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"
     ))
 
   saveRDS(m, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+    "start-", r_start_year, "-",
     n_draws, "-draws-", length(unique(data$type)),
     if(shortlist){"-short"}, ".rds"
   ))
@@ -208,12 +211,15 @@ for (i in seq_along(sort(unique(data$type)))) {
 
 ## load saved
   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+                          "start-", r_start_year, "-",
                           n_draws, "-draws-", length(unique(data$type)),
                           if(shortlist){"-short"}, ".rds"))
   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      "start-", r_start_year, "-",
                       n_draws, "-draws-", length(unique(data$type)),
                       if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"))
   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+                      "start-", r_start_year, "-",
                       n_draws, "-draws-", length(unique(data$type)),
                       if(shortlist){"-short"}, ".rds"))
 
@@ -274,6 +280,7 @@ if (shortlist) {
 
   ggsave(paste0(
       "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-timeseries-",
+      "start-", r_start_year, "-",
       scenario, "-", n_draws, "-draws-",
       length(unique(data$type)), "-short.png"
     ), width = set_width, height = set_height)
@@ -281,6 +288,7 @@ if (shortlist) {
 
   ggsave(paste0(
     "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-timeseries-",
+    "start-", r_start_year, "-",
     scenario, "-", n_draws, "-draws-",
     length(unique(data$type)), ".png"
   ), width = 9.5, height = 14)
@@ -319,6 +327,7 @@ if (!shortlist) {
 
   ggsave(paste0(
     "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+    "start-", r_start_year, "-",
     scenario, "-", n_draws, "-draws-brms-",
     length(unique(data$type)), ".png"
   ), width = 8, height = 4)
@@ -360,6 +369,7 @@ if (!shortlist) {
   if (shortlist) {
     ggsave(paste0(
       "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+      "start-", r_start_year, "-",
       scenario, "-", n_draws, "-draws-brms-",
       length(unique(data$type)), "-just-poly-short.png"
     ), width = 5, height = 2.5)
@@ -367,6 +377,7 @@ if (!shortlist) {
   } else {
     ggsave(paste0(
       "stock-specific/",spp,"/figs", if(FRENCH){"-french"}, "/rdev-enviro-corr-coef-violins-",
+      "start-", r_start_year, "-",
       scenario, "-", n_draws, "-draws-brms-",
       length(unique(data$type)), "-just-poly.png"
     ), width = 5, height = 4)
