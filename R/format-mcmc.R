@@ -32,6 +32,13 @@ format_mcmc <- function(
     pivot_longer(cols = everything(), names_to = "year", values_to = "recruits") |>
     mutate(year = as.numeric(year) - age_recruited)
 
+  ## NOTES on harvest rate.
+  # Harvest rate U is bounded between 0 and 1 and represents the annual removal rate (i.e., Annual Catch_t = U_t*VulnerableBiomass_t). I think this is what you want.
+  # Fishing mortality is is between 0 and infinity and represents the instantaneous fishing mortality rate. Catch is calculated with the Baranov catch equation.
+  # The relationship between them is: U=1-exp(-F)
+  # For the iscam outputs, you can just take mcmc$ut (I think the line is already there, commented out, mcmc_data$harvest_rate <- data$mcmc$ut[[1]][[main_commercial_gear]] and just need to change the header for hearvest rate: fheader<-paste0("ut1_gear",main_commercial_gear,"_")
+  # For SS3, if they don't produce Ut, then just use the formula above to convert
+  # TODO: check how this is used and which number we actually want.
   harvest_rate <- out[,grepl("F_", names(out))] |>
     rename_with(~str_replace(., "F_", "")) |>
     pivot_longer(cols = everything(), names_to = "year", values_to = "harvest_rate")|>
