@@ -20,6 +20,8 @@ format_mcmc_iscam <- function(data,
   mcmc_data$ssb <- data$mcmc$sbt[[1]]
   mcmc_data$recruits <- data$mcmc$rt[[1]]
   mcmc_data$rdev <- data$mcmc$rdev[[1]]
+
+  # TODO: check how this is used and which number we actually want.
   #mcmc_data$harvest_rate <- data$mcmc$ut[[1]][[main_commercial_gear]]
   mcmc_data$harvest_rate <- data$mcmc$ft[[1]][[main_commercial_gear]] # Not sure if you want Ft or Ut??
   #View( mcmc_data$ssb)
@@ -75,4 +77,31 @@ format_mcmc_iscam <- function(data,
   saveRDS(df,paste0("stock-specific/", spp, "/output/mcmc/", scenario, "/df", s,".RData"))
 
   }
- }
+  # browser()
+  suppressWarnings({
+    rdev <- data.frame(year = as.numeric(colnames(mcmc_data$rdev)) - age_recruited,
+                       rdev = sapply(mcmc_data$rdev, median),
+                       rdev_sd = sapply(mcmc_data$rdev, sd)) |> na.omit()
+
+    ssb <- data.frame(year = as.numeric(colnames(mcmc_data$ssb)),
+                      ssb = sapply(mcmc_data$ssb, median),
+                      ssb_sd = sapply(mcmc_data$ssb, sd)) |> na.omit()
+
+    recruits <- data.frame(year = as.numeric(colnames(mcmc_data$recruits)) - age_recruited,
+                           recruits = sapply(mcmc_data$recruits, median),
+                           recruits_sd = sapply(mcmc_data$recruits, sd)) |> na.omit()
+
+    harvest_rate <- data.frame(year = as.numeric(colnames(mcmc_data$harvest_rate)),
+                               harvest_rate = sapply(mcmc_data$harvest_rate, median),
+                               harvest_rate_sd = sapply(mcmc_data$harvest_rate, sd)) |> na.omit()
+  })
+
+  df <- left_join(ssb, recruits) |> left_join(rdev) |> left_join(harvest_rate)
+
+  df$species <- species
+  df$stock <- stock
+  df$scenario <- scenario
+
+  saveRDS(df, paste0("stock-specific/",spp,"/output/summary-", scenario, ".rds"))
+}
+
