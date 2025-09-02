@@ -12,8 +12,11 @@ header-includes:
 ---
 
 ```{r set-stock-params, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# INSTRUCTIONS:
 # copy file to spp folder and select species, prefix for density models, and year-month of analysis to be reported
 # check comments within text sections for needed updates
+# inline captions must have no spaces at the end of the final line
+
 species <- "Dover Sole"
 stock_name <- "Dover Sole"
 scenario <- "10_Hessian"
@@ -152,29 +155,28 @@ A number of other relationships involving physical-biogeochemical variables also
 
 
 <!-- < fig 1 > -->
-(ref:fig-ev-indices) Our selected oceanographic and biotic indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton, primary production). All except ones for copepods are currently available in the PACea R package. Climate indices are available for more years than are shown here, but BCCM variables are not. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class (condition applies to age > 1).
+(ref:fig-ev-indices) Our selected oceanographic and biotic indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton, primary production). All except ones for copepods are currently available in the PACea R package. Climate indices are available for more years than are shown here, but BCCM variables are not. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class (condition applies to age > 1)
 
-
-```{r ev-indices, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-ev-indices)"}
-# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/ev-indices.png")))
+```{r ev-indices, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-ev-indices)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/ev-indices.png")))
 ```
 
 
 <!-- < fig 2 > -->
 ```{r sample-dates, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Distribution of sampling day of year (DOY) for specimens included in the body condition analyses. Dashed grey line indicates the summer solstice."}
-# knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/E-sample-date-hist.png")))
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/E-sample-date-hist.png")))
 ```
 
 
 <!-- < fig 3 > -->
 ```{r corr-spawing, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among annual NPGO index on 2 year lag and variables and indices for spawning months hypothesized to influence egg survival and initial larval transport."}
-# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png")))
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-spawn.png")))
 ```
 
 
 <!-- < fig 4 > -->
 ```{r corr-pelagic, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among variables for pelagic months hypothesized to influence pelagic larval survival."}
-# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png")))
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-pelagic.png")))
 ```
 
 
@@ -186,7 +188,7 @@ A number of other relationships involving physical-biogeochemical variables also
 
 <!-- < fig 6 > -->
 ```{r corr-condition, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among variables and indices for early survey season leading up to summer solstice hypothesized to influence body condition."}
-# knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png")))
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/variable-correlations-cond.png")))
 ```
 
 
@@ -267,6 +269,7 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-cond
 <!-- Option to add violin plots -->
 <!-- Density violin plots (C) are as described in Figure \@ref(fig:rdev-violins) -->
 
+\clearpage
 
 <!-- < fig 11 > -->
 (ref:fig-cond-violins) Density violin plots for all coefficient posteriors from time-series regressions on 100 samples from body condition indices between `r cond_years[1]` and `r cond_years[2]`. NPGO, PDO and SST use this whole timeseries, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. Each violin contains 50000 samples of coefficients representing the first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomials, the correlation between subsequent time steps (p), and the observation error SD (sigma). All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase body condition by 1 SD
@@ -275,15 +278,17 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-cond
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-100-draws-brms-",full_cond_var_count,".png")))
 ```
 
+\clearpage
+
 <!-- < fig 12 > -->
-<!-- Include for relevant variables: -->
-<!-- NPGO, PDO and SST use this whole time series, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
-(ref:fig-cond-pred) All predicted relationships between environmental conditions and body condition between `r cond_years[1]` and `r cond_years[2]` for immatures (left column), mature females (middle column), and mature males (right column). The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of the condition index). Dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the index. Dots representing earlier years are progressively more transparent 
+(ref:fig-cond-pred) All predicted relationships between environmental conditions and body condition between `r cond_years[1]` and `r cond_years[2]` for immatures (left column), mature females (middle column), and mature males (right column). The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of the condition index). Dot-lines represent the median and the 95% quantiles of scaled deviations in predicted annual body condition observed in 100 samples from the index. Dots representing earlier years are progressively more transparent
 
 ```{r cond-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="5in", fig.cap="(ref:fig-cond-pred)."}
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-timeseries-", scenario, "-100-draws-brms-",full_cond_var_count,".png")))
 ```
 
+<!-- Include for relevant variables: -->
+<!-- NPGO, PDO and SST use this whole time series, Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
 
 \clearpage
 
@@ -300,16 +305,16 @@ Recruitment deviations (**TODO**) in `r species` were found to be **TODO** (Figu
 <!-- Removing the 2016 recruitment outlier resulted in ... (Figure \@ref(fig:rdev-pred-no-outlier)).  -->
 
 (ref:fig-rdev-violins-short)
-Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 MCMC samples of recruitment deviations between `r rdev_years[1]` and `r rdev_years[2]` from the base model. Each violin contains 50000 MCMC samples. All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase the recruitment deviation by 1.
+Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 MCMC samples of recruitment deviations between `r rdev_years[1]` and `r rdev_years[2]` from the base model. Each violin contains 50000 MCMC samples. All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase the recruitment deviation by 1
 
-```{r rdev-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-violins-short)"}
+```{r rdev-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-violins-short)."}
 # knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-", scenario, "-100-draws-brms-", short_rdev_var_count ,"-just-poly-short.png")))
 ```
 
 
-(ref:fig-rdev-pred-short) The five strongest predicted polynomial relationships between environmental conditions and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]` for the linear components (????) and the curvature components (????) of the polynomials. The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and 95% quantiles of observed values in the 100 MCMC samples. Dots representing earlier years are progressively more transparent.
+(ref:fig-rdev-pred-short) The five strongest predicted polynomial relationships between environmental conditions and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]` for the linear components (????) and the curvature components (????) of the polynomials. The darker shading represents the 95% CI in the predicted second order orthogonal polynomial relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample. Lighter shading indicates a 95% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and 95% quantiles of observed values in the 100 MCMC samples. Dots representing earlier years are progressively more transparent
 
-```{r rdev-pred-short, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-pred-short)"}
+```{r rdev-pred-short, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-rdev-pred-short)."}
 # knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-", scenario, "-100-draws-", short_rdev_var_count ,"-short.png")))
 ```
 
@@ -327,11 +332,13 @@ See draft condition appendix.
 <!-- Only mature female condition seemed consistently associated with ????. -->
 
 
-(ref:fig-cond-violins-short) Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 samples from the sex- and maturity-specific annual body condition indices for all available years (`r cond_years[1]`-`r cond_years[2]`). Each violin contains 50000 samples of the parameter distribution. 
-<!-- NPGO, PDO and SST use this whole time series, Pacific Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
+(ref:fig-cond-violins-short) Density violin plots for first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomial coefficient posteriors from time-series regressions on 100 samples from the sex- and maturity-specific annual body condition indices for all available years (`r cond_years[1]`-`r cond_years[2]`). Each violin contains 50000 samples of the parameter distribution
 
-```{r cond-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-cond-violins-short)"}
+```{r cond-violins-short, echo=FALSE, fig.align='left', fig.pos='h', out.width="6in", fig.cap="(ref:fig-cond-violins-short)."}
 # knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/cond-enviro-corr-coef-violins-", scenario, "-100-draws-brms-",short_cond_var_count,"-just-poly.png")))
 ```
+
+<!-- Add to caption for relevent variables -->
+<!-- NPGO, PDO and SST use this whole time series, Pacific Herring SSB ends in 2023, while the BCCM environmental covariates were only available through 2019. -->
 
 ## References

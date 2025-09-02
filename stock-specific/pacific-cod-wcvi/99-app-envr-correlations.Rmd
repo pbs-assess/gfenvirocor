@@ -13,8 +13,10 @@ header-includes:
 ---
 
 ```{r set-stock-params, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# INSTRUCTIONS:
 # copy file to spp folder and select species, prefix for density models, and year-month of analysis to be reported
 # check comments within text sections for needed updates
+# inline captions must have no spaces at the end of the final line
 species <- "Pacific Cod"
 stock_name <- "Pacific Cod WCVI"
 

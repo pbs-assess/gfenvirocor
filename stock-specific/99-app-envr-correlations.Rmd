@@ -11,9 +11,13 @@ header-includes:
   -  \usepackage{bm}
 ---
 
+
 ```{r set-stock-params, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# INSTRUCTIONS:
 # copy file to spp folder and select species, prefix for density models, and year-month of analysis to be reported
 # check comments within text sections for needed updates
+# inline captions must have no spaces at the end of the final line
+
 species <- "Dover Sole"
 stock_name <- "Dover Sole"
 
@@ -235,8 +239,10 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-envi
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Base_Case-100-draws-",full_rdev_var_count,".png")))
 ```
 
-(ref:fig-rdev-pred-no-outlier) Same as Figure \@ref(fig:rdev-pred) but with the 2016 recruitment outlier removed
+
 <!-- < fig 9 > -->
+(ref:fig-rdev-pred-no-outlier) Same as Figure \@ref(fig:rdev-pred) but with the 2016 recruitment outlier removed
+
 ```{r rdev-pred-no-outlier, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", fig.cap="(ref:fig-rdev-pred-no-outlier)."}
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Base_Case-100-draws-",full_rdev_var_count,"-no-outlier.png")))
 ```
