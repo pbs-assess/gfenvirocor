@@ -283,6 +283,12 @@ year_range <- range(out_sum$RecDevs$Yr[out_sum$RecDevs$type=="Main_RecrDev"]) - 
 r_start_year <- year_range[1] ## # first year with significant age data
 r_end_year <- 2020 # current most recent age data is from 2022 on a survey with youngest ages ever being 2
 
+# copy cond-index and cond-index-sims folders from gfcondition to data folder
+# review condition rmd
+c_start_year <- 1996 # first year in condition models
+c_end_year <- 2024 # last year in condition models
+
+
 ## FRENCH argument doesn't matter until this point,
 ## so can also be changed here as needed
 # FRENCH <- FALSE
@@ -309,12 +315,6 @@ source("analysis/03-correlations-w-recruitment-brms.R")
 
 ## Condiiton analyses ----
 
-# copy cond-index and cond-index-sims folders from gfcondition to data folder
-# review condition rmd
-c_start_year <- 1996 # first year in condition models
-c_end_year <- 2024 # last year in condition models
-
-
 control_list <- list(adapt_delta = 0.95)
 which_cond_model1 <- "2025-07"
 source("analysis/04-correlations-btw-rdev-condition-brms.R")
@@ -325,4 +325,5 @@ which_cond_model2 <- "2025-07-ld0c"
 source("analysis/05-correlations-w-condition-brms.R")
 
 final_year <- 2025 # for variable plotting
+start_year <- min(c_start_year, r_start_year)
 # source("analysis/02-plot-vars.R") # not working sourced

@@ -51,6 +51,7 @@ ds_labels <- sort(unique(ds_labels))
          y = rosettafish::en2fr("Standardized index", FRENCH),
          colour = rosettafish::en2fr("Pelagic", FRENCH)))
 
+
 (ev3 <- dj |> left_join(colkey) |>
     filter(year >= r_start_year)|>
     mutate(
@@ -94,7 +95,9 @@ y_lab_big <- ggplot() +
   theme_void()
 
 
+y_lab_big + patchwork::wrap_elements(ev1/ev2/ev4) + patchwork::plot_layout(width = c(0.05,1)) # if no juv
 y_lab_big + patchwork::wrap_elements(ev1/ev2/ev3/ev4) + patchwork::plot_layout(width = c(0.05,1))
+
 
 ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
               "/ev-indices.png"), width = 9, height = 8.5)
