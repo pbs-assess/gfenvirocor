@@ -1,0 +1,256 @@
+---
+title:
+  "APPENDIX XX: TIME-SERIES REGRESSIONS BETWEEN ENVIRONMENTAL CONDITIONS AND RECRUITMENT"
+date: 2025/12/01
+output:
+ csasdown::manureport_word:
+   french: false
+   
+bibliography: refs.bib
+header-includes:
+  -  \usepackage{bm}
+---
+
+```{r set-stock-params, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# copy file to spp folder and select species, prefix for density models, and year-month of analysis to be reported
+# check comments within text sections for needed updates
+species <- "Dover Sole"
+stock_name <- "Dover Sole"
+scenario <- "10_Hessian"
+
+# define depths of interest
+species_min <- 15 # suggested "adult min" in Love is 50, but largish catch of small dover recorded as shallow as 15m by MSSM
+species_max <- 1400
+
+# from 95% of commercially landed biomass February through April
+spawn_min <- 270
+spawn_max <- 620
+
+juv_min <- NA
+juv_max <- NA
+
+# depth range from our survey data encompassing 95% of this species’ biomass density
+# rounded to nearest 5m
+summer_min <- 90
+summer_max <- 460
+
+# define months of interest 
+spawning_months <- "January through May"
+pelagic_months <- "April through December"
+end_pelagic_month <- "December"
+# juv_months <- ####
+condition_months <- "April through June"
+
+rdev_years <- c(1979, 2020)
+cond_years <- c(1996, 2024)
+  
+cond_model_date <- "2025-07"
+  
+full_rdev_var_count <- 20
+# short_rdev_var_count <- ##
+  
+full_cond_var_count <- 7
+# short_cond_var_count <- ##
+```
+
+
+```{r setup, echo=FALSE, cache=FALSE, message=FALSE, results='hide', warning=FALSE}
+# set options that roughly match csasdown ones for compatibility when full assessment is done with csasdown
+library(knitr)
+options(knitr.graphics.error = FALSE) # required for knitting to word
+fig_out_type <- "png"
+fig_asp <- 0.618
+fig_width <- 9
+fig_out_width <- "6in"
+fig_dpi <- 180
+fig_align <- "center"
+fig_pos <- "htb"
+opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>",
+  fig.asp = fig_asp,
+  fig.width = fig_width,
+  out.width = fig_out_width,
+  echo = FALSE,
+  cache.comments = FALSE,
+  dev = fig_out_type,
+  dpi = fig_dpi,
+  fig.align = fig_align,
+  fig.pos = fig_pos
+)
+```
+
+
+```{r load-libraries, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+library(dplyr)
+library(readr)
+library(tibble)
+library(csasdown)
+```
+
+
+```{r get-model-data, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
+# spp <- gsub(" ", "-", gsub("\\/", "-", tolower(species)))
+spp <- gsub(" ", "-", gsub("\\/", "-", tolower(stock_name)))
+
+which_cond_model1 <- cond_model_date
+which_cond_model2 <- paste0(cond_model_date, "-ld0c")
+```
+
+# TIME-SERIES REGRESSIONS BETWEEN ENVIRONMENTAL CONDITIONS AND SPECIES BIOLOGY {#app:envr-cond}
+
+To examine how environmental conditions may affect `r species` productivity, we used Bayesian time-series regressions to account for temporal autocorrelation and propagate uncertainty in our estimates of species biology.
+
+## ENVIRONMENTAL DATA SOURCES AND SPATIOTEMPORAL AGGREGATION
+We selected a relevant subset of oceanographic and biotic variables primarily from those available in the PACea R package [@edwards2024pacea]. 
+Oceanographic indices are provided as 1-dimensional values over time. 
+Spatially explicit environmental variables are available from the British Columbia continental margin coupled physical-biogeochemical model [@pena2019], and it includes dissolved oxygen concentration, temperature, pH, and salinity. 
+This model is a high resolution downscaled model with a vertical discretisation of 42 depth levels that increase in resolution near the surface. 
+Each of the geochemical variables are summarised for sea surface and sea floor, as well as some intermediate depth strata - here, we primarily used surface and bottom values. 
+Two additional biotic variables are available: phytoplankton concentration, from surface to 10 m, and depth-integrated primary production. 
+All variables are available as monthly means from 1993 to 2019 at a resolution of between $4\ \mathrm{km}^2$, with an extent covering Canada's Pacific Exclusive Economic Zone. 
+
+Environmental variables and climate indices were selected based on our knowledge and understanding of direct and indirect biological drivers of dover sole. 
+Additionally, these variables were selected based on an initial exploration of correlations with recruitment deviations (Figure \@ref(fig:ev-indices)). 
+
+Pacific Decadal Oscillation (PDO) is a climate index found to be important for other flatfish species [@clark2002, @stewart2016], while the North Pacific Gyre Oscillation index (NPGO) is an important indicator of upwelling and productivity [@pena2019]. 
+Upwelling and temperature has been found to have strong effects on cohort strength in `r species` [@hayman1980]. 
+The Arctic Oscillation index (AO) tracks the strength of atmospheric pressure between the Arctic and mid-latitudes within the nothern hemisphere, which influences mid-latitudinal weather patterns such as temperature and precipitation. 
+The Multivariate El Ni\~no index (MEI) measure the strength of El Ni\~no and Le Ni\~na events and characterizes large-scale atmospheric circulation changes that affect SST, precipitation, and ultimately ecosystems in the North Pacific. 
+Similarly, the Oceanic Ni\~no index (ONI) and the Southern Oscillation index (SOI) characterize the large-scale atmospheric circulation in the Pacific Ocean. 
+The Current Bifurcation index (BI) is a measure of how the North Pacific current splits, with positive values indicating more current water northwards towards the Alaska current and negative values indicating more current water southwards towards the California current.
+
+In order to examine potential influences of environmental variables on `r species`, we selected environmental variables for specific time periods that were hypothesized to impact recruitment. 
+We used annual values for annual indices (e.g. BI), whereas for indices and environmental variables provide at a monthly resolution, we took the average across a three month seasonal window. We also applied varies lags to environmental variables and indices to represent a priming of the ecosystem prior to recruitment events. 
+All environmental variables were centered by their mean and scaled by their SD before analysis. 
+
+Spawning occurs at depths `r spawn_min` to `r spawn_max` [@love2011] (Figure \@ref(fig:spawn-O2)), so we calculated the mean sea floor oxygen concentration, salinity, and temperature for all cells containing these depths for each month and then took the average of across the a three month window. 
+We also tested the various indices listed above during and leading up to the spawning season (`r spawning_months`).
+
+Current strength is thought to transport of the smallest larvae towards or away from suitable habitats. 
+Because we do not yet have appropriately aggregated information on current variability, we used climate indices as possible proxies for these types of mechanisms. 
+In addition to climate indices, for the pelagic larval period (`r pelagic_months`) [@pearcy1977], we calculated mean sea surface oxygen (a possible indicator of surface winds), salinity (possibly related to relative influence of upwelling versus freshwater), temperature, and phytoplankton biomass for all areas less than `r species_max` m deep (Figure \@ref(fig:sp-O2)). 
+We also used indices of euphausiid abundance generated from summer surveys and modelling work done by Evans et al. [@evans2023]. 
+These euphausiid indices of abundance were tested across three regions--WCVI, QCS, and offshore--as the `r` species` pelagic phase covers a wide region. 
+
+We also acquired indices of euphausiid abundance generated from summer surveys conducted in the same general areas as the WCVI and QCS synoptic surveys, as well as further offshore, from modelling work done by Evans et al. (2023). Given uncertainty in where Petrale Sole larvae are spending their pelagic period, we considered total euphausiid biomass anomalies for each of the above regions separately (WCVI, QCS, offshore) when assessing correlations with recruitment.
+
+<!-- < fig 1 > -->
+(ref:fig-ev-indices) Sample of climate indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton) used in our analyses. All except ones for copepods are currently available in the PACea R package. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class.
+```{r ev-indices, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-ev-indices)"}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/ev-indices.png")))
+```
+
+<!-- < fig 2 > -->
+```{r spawn-O2, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Example month and year for dissolved oxygen concentration selected based on Dover Sole spawning depths."}
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/spawn-O2.png")))
+```
+
+<!-- < fig 3 > -->
+```{r sp-O2, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Example month and year for dissolved oxygen concentration selected based on the full Dover Sole depth range during the larval pelagic phase."}
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/sp-O2.png")))
+```
+
+The various environmental variables and climate indices assessed here showed varying degrees of correlation (Figure \@ref(fig:env-cor)). 
+The highest correlations between climate indices were between ONI, SOI and MEI, while the highest correlations between climate indices and environmental variables were between surface dissolved oxygen concentration and MEI, NPGO, ONI, SOI, and PDO. 
+The greatest correlations between environmental variables were between surface or bottom salinity and phytoplankton, and between bottom temperature and bottom salinity. 
+While these correlations may introduce confounding effects in an multivariate analysis, our approach takes a simple univariate analysis, where we model each variable separately with recruitment deviations.
+
+<!-- < fig 4 > -->
+```{r env-cor, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Spearman’s rank correlations among climate indices and average BCCM physical-biogeochemical model variables aggregated as annual means across all cells containing any of the depths occupied by Dover Sole. Different spatiotemporal aggregations and additional variables are considered in our analysis, but were not plotted for readability."}
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/env_corplot.png")))
+```
+
+
+\clearpage
+
+## BIOLOGICAL RESPONSE VARIABLES WITH UNCERTAINTY
+
+To assess possible impacts of the above environmental variables, we considered recruitment as a biological response.
+To propagate uncertainty in the estimation of the biological responses, we extracted 100 MCMC samples of the annual recruitment deviations from the base model [similar to an approach used in @haigh2019].
+However, we restricted analysis to the period from `r rdev_years[1]` through `r rdev_years[2]`, the period for which the age data included in this assessment was sufficient to inform recruitment estimates.
+
+Recruitment deviations already represent mean-centered multiplicative deviations from expected recruitment given each year’s estimate of female spawning stock biomass, therefore we entered them into the models without transformation.
+
+
+## TIME-SERIES REGRESSION
+
+We first ran a linear and quadratic regression with the environmental variables and climate indices at various temporal periods (seasonal) ((Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). For the quadratic model, we transformed the predictor variables to the second orthogonal degree of the polynomial, where the first component represents the linear slope portion, and the second component represents the curvature. Variables that showed an R^2 value of greater than 0.1 were selected for further analysis with the Bayesian model.
+
+<!-- < fig 5 > -->
+```{r lm-reg, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Linear model regressions with selected climate indices and environmental variables."}
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Final11-lm-31.png")))
+```
+
+<!-- < fig 6 > -->
+```{r qm-reg, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Quadratic model regressions with selected climate indices and environmental variables."}
+knitr::include_graphics(here::here(paste0("../gfcondition/stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Final11-lm-quadratic-31.png")))
+```
+
+For each sampled time-series of our biological responses, we fit separate Bayesian hierarchical generalized linear mixed effects models (GLMMs) to assess the effect of each environmental variable on recruitment deviations. All predictor variables were fit as a second order orthogonal polynomial to allow for a curved predictor-response relationship and we accounted for temporal autocorrelation using a stationary autoregressive process with first-order (AR1) correlation
+
+<!-- < eqn 1 > -->
+$$
+\begin{aligned}
+y_t &= \beta_0 + \beta_1 D_{1t} + \beta_2 D_{2t} + \epsilon_t,\\
+\epsilon_{t=1} &\sim \mathrm{Normal}(0, \sigma^2),\\
+\epsilon_{t>1} &\sim \mathrm{Normal}(\rho_{\epsilon{t-1}}, \sigma^2),
+\end{aligned}
+$$
+
+where $t$ is year, $y$ is an annual recruitment or body condition deviation sample, $\beta_1$ and $\beta_2$ are coefficients, $D_{1t}$ is the first orthogonal component of the polynomial (representing the linear slope portion), $D_{2t}$ is the second orthogonal component of the polynomial (representing curvature), $\rho_{\epsilon{t}}$ is the correlation between subsequent time steps, and $\sigma$ represents the observation error SD.
+The first time step is given a mean-zero prior with the same SD.
+We assigned weakly informative priors on all parameters: N(0,10) priors on all $\beta$ parameters, N(0,0.5) on the $\rho$ and a half-t(3, 0, 2) prior (i.e., degrees of freedom of 3 and scale of 2) on $\sigma$. 
+The slightly stronger prior for $\rho$ is based on an expectation that recruitment should not be highly correlated from one year to the next.
+
+Posteriors from 100 models representing the same biological response and environmental variable combination were then combined to provide estimates with uncertainty that incorporated both uncertainty in the biological values (derived from our stock assessment) and in their relationship with each variable. 
+
+We fit these models in Stan [@carpenter2017] using the R package brms [@burkner2017] and cmdstanr [@gabry2024].
+Stan implements the No-U-Turn Hamiltonian Markov chain Monte Carlo algorithm [@hoffman2014] to perform Bayesian statistical inference.
+For each sample draw we ran one chain with 1000 iterations (500 warm-up, adapt delta of 0.9 or 0.95); therefore our final inference was based on $500 \times 100 = 50000$ iterations.
+We assessed model convergence on a model fit to the mean estimates for each biological variable with 4 chains each with 2000 iterations (1000 warmup).
+All models achieved Rhat (scale-reduction factors) of $< 1.01$ and effective sample sizes of $> 800$ (or 200 per chain).
+
+<!-- < fig 7 > -->
+(ref:fig-rdev-violins) Density violin plots for all coefficient posteriors from time-series regressions on 100 MCMC samples of recruitment deviations from the base model (from `r rdev_years[1]` through `r rdev_years[2]`). Each violin contains 50000 MCMC samples. Coefficients represent the first- (poly1: linear component) and second- (poly2: curvature component) order orthogonal polynomials, the correlation between subsequent time steps (p), and the observation error SD (sigma). All variables have been standardized within the time period tested, so an estimate of 1 for the linear component means that 1 SD in that variable is predicted to increase the recruitment deviation by 1
+
+```{r rdev-violins, echo=FALSE, fig.align='left', fig.pos='h', out.width="8in", out.height="8in", fig.cap="(ref:fig-rdev-violins)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-coef-violins-Final11-100-draws-brms-31.png")))
+```
+
+<!-- < fig 8 > -->
+(ref:fig-rdev-pred) All predicted relationships between environmental conditions and recruitment deviations from the base model for `r rdev_years[1]` through `r rdev_years[2]`. The darker shading represents the 95% CI in the predicted second-order orthogonal polynomial (i.e., quadratic) relationship based on the combined posteriors from 100 time-series regressions, one for each MCMC sample of recruitment deviations from the stock assessment model. Lighter shading indicates a 90% credible interval from the full posterior prediction (i.e., including uncertainty on new “observations” of recruitment deviations). Vertical dot-lines represent the median recruitment deviation and the 95% quantiles of observed values in the 100 MCMC samples. Dots representing earlier years are progressively more transparent
+
+```{r rdev-pred, echo=FALSE, fig.align='center', fig.pos='h', out.width="4.75in", out.height="9in", fig.cap="(ref:fig-rdev-pred)."}
+knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Final11-100-draws-31.png")))
+```
+
+
+\clearpage
+
+# For Methods section of assessment
+
+## ENVIRONMENTAL CONDITIONS
+
+## Bayesian time-series regressions
+
+To assess possible impacts of environmental conditions on `r species`, we considered recruitment as abiological response. For recruitment, we used 100 MCMC samples of the recruitment deviations from the ensemble base model. We restricted this analysis to the period from `r rdev_years[1]` to `r rdev_years[2]` for which age data with the potential to inform recruitment estimates were available. 
+
+For each recruitment time series sample (100 per year), we tested the correlation with a range of climate indices and environmental variables that were hypothesized to be important for `r species` based on life history knowledge and existing literature (see [site Appendix]). Correlations were first tested using a linear and quadratic regression to filter our the number of variables tested. Then we used a Bayesian approach of a time-series regression. Tests were first conducted on the median estimates for each variable combination to confirm convergence and then repeated for each sample from the input models. We then combined the posteriors from all the regressions across samples to derive posterior distributions that accounted for uncertainty in both the initial models and the regression model. Full description of Bayesian time-series regression and the details of all the following data sources are provided in [site appendix]. 
+
+## Environmental conditions potentially impacting recruitment
+
+We selected a set of climate and biotic indices that we hypothesized to be potentially important for egg and pelagic larval survival (see Appendix). 
+These included average climate indices and environmental variables representing the spawning period (`r spawning_months`) and depths (`r spawn_min`m-`r spawn_max`m) at the start of each recruitment year as well as in prior years as an index for 'priming' the environment (e.g. Oceani Ni\~no Index (ONI), Pacific Decadal Oscillation (PDO), mean sea floor oxygen concentration, and mean sea floor temperature). Similarly, we used climate indices and environmental variables representing the pelgaic larval period representing sea surface conditions during the full potential pelagic period (e.g. ONI, PDO, sea surface salinity, sea surface dissolved O^2 concentration). While many of these variables are correlated (Figure \@ref(fig:env-cor)), our approach is to run each variable separately in a univariate analysis; more consideration would need to be taken for a multivariate approach.
+
+# For Results section of assessment
+
+## ENVIRONMENTAL CONDITIONS
+
+### Environmental conditions potentially impacting recruitment
+
+Recruitment deviations in `r species` were found to should moderate correlations with a number of environmental variables in the initial linear and quadratic regression analysis (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). However, these correlations were less apparent when we accounted for uncertainty in the outputs from the stock recruit analysis (Figure \@ref(fig:rdev-violins) & \@ref(fig:rdev-pred)). The variables that showed the strongest relationships were the current bifurcation index for the recruitment year, NPGO during the winter in the year prior to recruitment, and the ONI in the spring of the recruitment year. None of the environmental variables (non-climate indices) showed a strong relationship with recruitment deviations. Some climate indices and environmental variables showed some curvature relationship (parabolic or u-shaped).
+
+## References
