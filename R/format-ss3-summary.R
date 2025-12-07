@@ -10,13 +10,19 @@
 format_ss3_summary <- function(
   output,
   species,
-  stock
+  stock,
+  mcmc=NULL
   ){
   out_sum <- output
   suppressWarnings({
   rdev <- data.frame(year = out_sum$RecDevs$Yr - out_sum$age_recruited,
                    rdev = out_sum$RecDevs$Value,
                    rdev_sd = out_sum$RecDevs$Parm_StDev) |> na.omit()
+
+  if(!is.null(mcmc)){
+    rdev$rdev_mle <- rdev$rdev
+    rdev$rdev <- apply(mcmc[,substr(names(mcmc),1,12)=="Main_RecrDev"],2,median)
+  }
 
   ssb <- data.frame(year = as.numeric(str_replace(out_sum$SSB_est$Label, "SSB_", "")),
                     ssb = out_sum$SSB_est$Value,
@@ -43,12 +49,13 @@ format_ss3_summary <- function(
 #' simplified SS3 summary output (Tom's version)
 #'
 #' @param output Summary output from SS3
+#' @param mcmc Mcmc output for extracting medians
 #' @param name Name the SS3 model run
 #'
 #' @export
 #'
 #' @examples
-extract_SS<-function(fit, name=NULL){
+extract_SS<-function(fit, mcmc=NULL, name=NULL){
   if(class(fit) != "list")  fit = readRDS(fit)
 
   out<-list()
@@ -108,9 +115,11 @@ extract_SS<-function(fit, name=NULL){
 
   out$AIC  <- 2 * (out$nll$values[1] + out$npar)
   out$CoVar = fit$CoVar
+
   # Retro
   #if(!is.null(Fit$peels))out$rho<-mohns_rho(Fit)
   out$RecDevs = fit$recruitpars
+
   #out$conv = fit$opt$convergence
   out$RunTime = fit$RunTime
   out$Nwarnings = fit$Nwarnings

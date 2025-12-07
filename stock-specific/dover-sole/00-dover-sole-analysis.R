@@ -44,8 +44,8 @@ n_draws <- 100
 scenario <- out_sum$model_name
 
 ## only run if first time
-format_ss3_summary(out_sum, species, stock)
 out_mcmc <- readRDS(paste0("stock-specific/",spp,"/data/mcmc_out.rdata"))
+format_ss3_summary(out_sum, species, stock, mcmc = out_mcmc)
 format_mcmc(out_mcmc, species, stock, scenario, age_recruited = out_sum$age_recruited, samples = n_draws)
 
 ## Set spatiotemporal scales ----
