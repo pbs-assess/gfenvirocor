@@ -110,13 +110,13 @@ Spatially explicit environmental variables are available from the British Columb
 This model is a high resolution downscaled model with a vertical discretisation of 42 depth levels that increase in resolution near the surface. 
 Each of the geochemical variables are summarised for sea surface and sea floor, as well as some intermediate depth strata - here, we primarily used surface and bottom values. 
 Two additional biotic variables are available: phytoplankton concentration, from surface to 10 m, and depth-integrated primary production. 
-All variables are available as monthly means from 1993 to 2019 at a resolution of between $4\ \mathrm{km}^2$, with an extent covering Canada's Pacific Exclusive Economic Zone. 
+All variables are available as monthly means from 1993 to 2019 at a resolution of $4\ \mathrm{km}^2$, with an extent covering Canada's Pacific Exclusive Economic Zone. 
 
 Environmental variables and climate indices were selected based on our knowledge and understanding of direct and indirect biological drivers of dover sole. 
-Additionally, these variables were selected based on an initial exploration of correlations with recruitment deviations (Figure \@ref(fig:ev-indices)). 
+Subsets of these variables was selected based on an initial exploration of correlations with recruitment deviations (Figure \@ref(fig:ev-indices)). 
 
 Pacific Decadal Oscillation (PDO) is a climate index found to be important for other flatfish species [@clark2002, @stewart2016], while the North Pacific Gyre Oscillation index (NPGO) is an important indicator of upwelling and productivity [@pena2019]. 
-Upwelling and temperature has been found to have strong effects on cohort strength in `r species` [@hayman1980]. 
+Upwelling and temperature have been found to have strong effects on cohort strength in `r species` [@hayman1980]. 
 The Arctic Oscillation index (AO) tracks the strength of atmospheric pressure between the Arctic and mid-latitudes within the nothern hemisphere, which influences mid-latitudinal weather patterns such as temperature and precipitation. 
 The Multivariate El Ni\~no index (MEI) measure the strength of El Ni\~no and Le Ni\~na events and characterizes large-scale atmospheric circulation changes that affect SST, precipitation, and ultimately ecosystems in the North Pacific. 
 Similarly, the Oceanic Ni\~no index (ONI) and the Southern Oscillation index (SOI) characterize the large-scale atmospheric circulation in the Pacific Ocean. 
@@ -132,13 +132,13 @@ We also tested the various indices listed above during and leading up to the spa
 Current strength is thought to transport of the smallest larvae towards or away from suitable habitats. 
 Because we do not yet have appropriately aggregated information on current variability, we used climate indices as possible proxies for these types of mechanisms. 
 In addition to climate indices, for the pelagic larval period (`r pelagic_months`) [@pearcy1977], we calculated mean sea surface oxygen (a possible indicator of surface winds), salinity (possibly related to relative influence of upwelling versus freshwater), temperature, and phytoplankton biomass for all areas less than `r species_max` m deep (Figure \@ref(fig:sp-O2)). 
-We also used indices of euphausiid abundance generated from summer surveys and modelling work done by Evans et al. [@evans2023]. 
-These euphausiid indices of abundance were tested across three regions--WCVI, QCS, and offshore--as the `r` species` pelagic phase covers a wide region. 
 
-We also acquired indices of euphausiid abundance generated from summer surveys conducted in the same general areas as the WCVI and QCS synoptic surveys, as well as further offshore, from modelling work done by Evans et al. (2023). Given uncertainty in where Petrale Sole larvae are spending their pelagic period, we considered total euphausiid biomass anomalies for each of the above regions separately (WCVI, QCS, offshore) when assessing correlations with recruitment.
+We also used indices of euphausiid abundance generated from modelling work done by Evans et al. [@evans2023] using summer survey data. 
+These euphausiid indices of abundance represent three regions--WCVI, QCS, and offshore. 
+Given uncertainty in where `r species` larvae are spending their pelagic period, we considered total euphausiid biomass anomalies for each region separately.
 
 <!-- < fig 1 > -->
-(ref:fig-ev-indices) Sample of climate indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton) used in our analyses. All except ones for copepods are currently available in the PACea R package. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class.
+(ref:fig-ev-indices) Sample of climate indices and BCCM physical-biogeochemical model variables (oxygen, salinity, temperature, phytoplankton) used in our analyses. All except ones for euphausiid are currently available in the PACea R package. BCCM variables are aggregated as means across all cells containing any of the depths occupied by `r species` of the relevant age class.
 ```{r ev-indices, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="(ref:fig-ev-indices)"}
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/ev-indices.png")))
 ```
@@ -236,14 +236,23 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-envi
 
 ## Bayesian time-series regressions
 
-To assess possible impacts of environmental conditions on `r species`, we considered recruitment as abiological response. For recruitment, we used 100 MCMC samples of the recruitment deviations from the ensemble base model. We restricted this analysis to the period from `r rdev_years[1]` to `r rdev_years[2]` for which age data with the potential to inform recruitment estimates were available. 
+To assess possible impacts of environmental conditions on `r species`, we considered recruitment as a biological response. 
+For recruitment, we used 100 MCMC samples of the recruitment deviations from the ensemble base model. 
+We restricted this analysis to the period from `r rdev_years[1]` to `r rdev_years[2]` for which age data with the potential to inform recruitment estimates were available. 
 
-For each recruitment time series sample (100 per year), we tested the correlation with a range of climate indices and environmental variables that were hypothesized to be important for `r species` based on life history knowledge and existing literature (see [site Appendix]). Correlations were first tested using a linear and quadratic regression to filter our the number of variables tested. Then we used a Bayesian approach of a time-series regression. Tests were first conducted on the median estimates for each variable combination to confirm convergence and then repeated for each sample from the input models. We then combined the posteriors from all the regressions across samples to derive posterior distributions that accounted for uncertainty in both the initial models and the regression model. Full description of Bayesian time-series regression and the details of all the following data sources are provided in [site appendix]. 
+We tested the correlation between recruitment and a range of climate indices and environmental variables that were hypothesized to be important for `r species` based on life history knowledge and existing literature (see [cite Appendix]). 
+These variables were first filtered using simple linear and quadratic regressions to retain only those variables with an R^2 value over 0.1 with the median recruitment estimates. 
+Then we used a Bayesian approach of a time-series regression to assess the strength of evidence for each relationship. 
+Regressions were again conducted on the median estimates for each variable combination to confirm convergence of the Bayesian model and then repeated for each MCMC sample recruitment time series. 
+We then combined the posteriors from all the regressions across samples to derive posterior distributions that accounted for uncertainty in both the stock assessment and the regression models. 
+Full description of Bayesian time-series regression and the details of all the following data sources are provided in [cite appendix]. 
 
 ## Environmental conditions potentially impacting recruitment
 
 We selected a set of climate and biotic indices that we hypothesized to be potentially important for egg and pelagic larval survival (see Appendix). 
-These included average climate indices and environmental variables representing the spawning period (`r spawning_months`) and depths (`r spawn_min`m-`r spawn_max`m) at the start of each recruitment year as well as in prior years as an index for 'priming' the environment (e.g. Oceani Ni\~no Index (ONI), Pacific Decadal Oscillation (PDO), mean sea floor oxygen concentration, and mean sea floor temperature). Similarly, we used climate indices and environmental variables representing the pelgaic larval period representing sea surface conditions during the full potential pelagic period (e.g. ONI, PDO, sea surface salinity, sea surface dissolved O^2 concentration). While many of these variables are correlated (Figure \@ref(fig:env-cor)), our approach is to run each variable separately in a univariate analysis; more consideration would need to be taken for a multivariate approach.
+These included average climate indices and environmental variables representing the spawning period (`r spawning_months`) and depths (`r spawn_min`m-`r spawn_max`m) at the start of each recruitment year as well as in prior years as an index for 'priming' the environment (e.g. Oceani Ni\~no Index (ONI), North Pacific Gyre Oscillation index (NPGO), Current Bifurcation index (BI), Pacific Decadal Oscillation (PDO), mean sea floor oxygen concentration, and mean sea floor temperature). 
+Similarly, we used climate indices and environmental variables representing the pelgaic larval period representing sea surface conditions during the full potential pelagic period (e.g. ONI, BI, sea surface salinity, sea surface dissolved O^2 concentration). 
+While many of these variables are correlated (Figure \@ref(fig:env-cor)), our approach is to run each variable separately in a univariate analysis; more consideration would need to be taken for a multivariate approach.
 
 # For Results section of assessment
 
@@ -251,6 +260,11 @@ These included average climate indices and environmental variables representing 
 
 ### Environmental conditions potentially impacting recruitment
 
-Recruitment deviations in `r species` were found to should moderate correlations with a number of environmental variables in the initial linear and quadratic regression analysis (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). However, these correlations were less apparent when we accounted for uncertainty in the outputs from the stock recruit analysis (Figure \@ref(fig:rdev-violins) & \@ref(fig:rdev-pred)). The variables that showed the strongest relationships were the current bifurcation index for the recruitment year, NPGO during the winter in the year prior to recruitment, and the ONI in the spring of the recruitment year. None of the environmental variables (non-climate indices) showed a strong relationship with recruitment deviations. Some climate indices and environmental variables showed some curvature relationship (parabolic or u-shaped).
+Recruitment deviations in `r species` were found to should moderate correlations with a number of environmental variables in the initial linear and quadratic regression analysis (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). 
+However, these correlations were less apparent when we accounted for uncertainty in the outputs from the stock recruit analysis (Figure \@ref(fig:rdev-violins) & \@ref(fig:rdev-pred)). 
+The variables that showed the strongest relationships were the current bifurcation index for the recruitment year, NPGO during the winter in the year prior to recruitment, and the ONI in the spring of the recruitment year. 
+None of the environmental variables (non-climate indices) showed a strong relationship with recruitment deviations. 
+Some climate indices and environmental variables showed quadratic relationships that represented slight dampening or acceleration at extreme values. 
+In contrast, recruitment appeared distinctly higher for both the highest and lowest values of pelagic period phytoplankton.
 
 ## References
