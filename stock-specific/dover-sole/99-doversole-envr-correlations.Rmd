@@ -113,7 +113,7 @@ Two additional biotic variables are available: phytoplankton concentration, from
 All variables are available as monthly means from 1993 to 2019 at a resolution of $4\ \mathrm{km}^2$, with an extent covering Canada's Pacific Exclusive Economic Zone. 
 
 Environmental variables and climate indices were selected based on our knowledge and understanding of direct and indirect biological drivers of dover sole. 
-Subsets of these variables was selected based on an initial exploration of correlations with recruitment deviations (Figure \@ref(fig:ev-indices)). 
+A subset of these variables was selected based on an initial exploration of correlations with recruitment deviations (Figure \@ref(fig:ev-indices)). 
 
 Pacific Decadal Oscillation (PDO) is a climate index found to be important for other flatfish species [@clark2002, @stewart2016], while the North Pacific Gyre Oscillation index (NPGO) is an important indicator of upwelling and productivity [@pena2019]. 
 Upwelling and temperature have been found to have strong effects on cohort strength in `r species` [@hayman1980]. 
