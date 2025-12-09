@@ -107,6 +107,20 @@ for (i in seq_along(sort(unique(data$type)))) {
 
     nd <- data.frame(value = seq(min(dd$value), max(dd$value), length.out = 200), time = NA)
 
+
+    # check effective sample size of each model/chain:
+    # browser()
+    check_ess <- fits |> lapply(\(x) {
+      get_ess(x)
+    })
+
+    # # also make faint if ESS of any less than 50
+    if (min(unlist(check_ess)) < 50) {
+    # # or make faint if ESS of more than % chains less than ??
+    # if (quantile(unlist(check_ess),0.1) < 200) {
+      set_alpha <- 0.2
+    }
+
     # make predictions for each:
     preds <- fits |> lapply(\(x) {
       posterior_epred(
@@ -151,10 +165,16 @@ for (i in seq_along(sort(unique(data$type)))) {
         data = dd_sum, aes(value_raw, ymin = min, ymax = max),
         colour = set_colour
       ) +
+      # points from MLE or median if provided
       geom_point(
         data = dat, aes(value_raw, response, alpha = time),
         colour = set_colour
       ) +
+      # # attempt points from MCMC?
+      # geom_point(
+      #   data = dd_sum, aes(value_raw, response_new_med, alpha = year),
+      #   colour = set_colour
+      # ) +
       geom_line(
         data = nd, aes(value_raw, est),
         alpha = set_alpha,
