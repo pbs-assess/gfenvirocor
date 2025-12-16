@@ -86,6 +86,7 @@ opts_chunk$set(
 
 ```{r load-libraries, echo = FALSE, cache = FALSE, message = FALSE, results = 'hide', warning = FALSE}
 library(dplyr)
+library(tidyr)
 library(readr)
 library(tibble)
 library(csasdown)
@@ -182,7 +183,7 @@ Recruitment deviations already represent mean-centered multiplicative deviations
 
 We first ran a linear and quadratic regression with the environmental variables and climate indices at various temporal periods (seasonal) (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). 
 For the quadratic model, we transformed the predictor variables to the second orthogonal degree of the polynomial, where the first component represents the linear slope portion, and the second component represents the curvature. 
-Variables that showed an R^2 value of greater than 0.1 were selected for further analysis with the Bayesian model.
+Variables that showed an R^2 value of greater than 0.1 were selected for further analysis with the Bayesian model (Table \@ref(tab:var-table)).
 
 <!-- < fig 5 > -->
 ```{r lm-reg, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Linear model regressions with selected climate indices and environmental variables. Covariates selected here had an $R^2$ value greater than 0.1. Shaded area represents the 95% confidence interval."}
@@ -192,6 +193,85 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-envi
 <!-- < fig 6 > -->
 ```{r qm-reg, echo=FALSE, fig.align='center', fig.pos='h', out.width="6in", fig.cap="Quadratic model regressions with selected climate indices and environmental variables. Covariates selected here had an $R^2$ value greater than 0.1. Shaded area represents the 95% confidence interval."}
 knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-enviro-corr-timeseries-Final11-lm-quadratic-148sub.png")))
+```
+
+<!-- < table 1 > -->
+```{r var-table}
+# ---
+# --- Table of variable coefs for rmd ---#
+# need to be run after 03-linear and quadratic scripts 
+coefs_lm <- readRDS(here::here(paste0("stock-specific/dover-sole/output/rdev-enviro-corr-coefs-lm-Final11-147.rds"))) |>
+  bind_rows()
+coefs_qm <- readRDS(here::here(paste0("stock-specific/dover-sole/output/rdev-enviro-corr-coefs-lm-quadratic-Final11-147.rds"))) |>
+  bind_rows()
+
+dvrsub <- readRDS(here::here(paste0("stock-specific/dover-sole/data/envrio-vars-for-rdevs-dvrsub.rds")))
+selected_vars <- unique(dvrsub$type)
+
+# coefs_lm and coefs_qm are lists of tibbles; bind each set
+coefs_lm2 <- coefs_lm |>
+  transmute(
+    var_names,
+    model = "linear",
+    r2    = r_squared
+  )
+
+coefs_qm2 <- coefs_qm |>
+  transmute(
+    var_names,
+    model = "quadratic",
+    r2    = r_squared
+  )
+
+coefs_all <- bind_rows(coefs_lm2, coefs_qm2) |>
+  tidyr::pivot_wider(id_cols = var_names, names_from = model, values_from = r2)
+
+
+# ---- 2. Collapse to broader "categories" (e.g. MEI, NPGO, Seafloor O2) ----
+make_group <- function(x) {
+  case_when(
+    grepl("^MEI", x)                    ~ "MEI",
+    grepl("^NPGO", x)                   ~ "NPGO",
+    grepl("^PDO", x)                    ~ "PDO",
+    grepl("^ONI", x)                    ~ "ONI",
+    grepl("^SOI", x)                    ~ "SOI",
+    grepl("^AO", x)                     ~ "AO",
+    grepl("Current bifurcation", x)     ~ "Current bifurcation",
+    TRUE ~ gsub("\\s*\\(.*", "", x)   # strip "(...)" so e.g. "Seafloor O2 (Jan-Mar)" -> "Seafloor O2"
+  )
+}
+
+coefs_all_grp <- coefs_all |>
+  mutate(group = make_group(var_names))
+
+selected_vars <- data.frame(type = selected_vars) |>
+  mutate(group = make_group(type)) 
+
+# ---- 3. One row per group: highest R^2 and whether any member was selected ----
+env_summary <- coefs_all_grp |>
+  group_by(group) |>
+  summarise(
+    max_r2_lm   = max(linear, na.rm = TRUE),
+    max_r2_qm   = max(quadratic, na.rm = TRUE),
+    selected = any(var_names %in% unique(selected_vars$type)),
+    .groups  = "drop"
+  ) 
+
+# ---- 4. Make a clean table for the Rmd ----
+env_table <- env_summary |>
+  mutate(
+    Variable   = group,
+    `Max lm R^2`  = round(max_r2_lm, 3),
+    `Max qm R^2`  = round(max_r2_qm, 3),
+    Selected   = if_else(selected, "\u2713", "")
+  ) |>
+  select(Variable, `Max lm R^2`, `Max qm R^2`, Selected)
+
+knitr::kable(
+  env_table,
+  caption = "Summary of variables grouped by category, showing the maximum R^2 across linear (lm) and quadratic (qm) models and whether any member of the group was selected (R^2 > 0.1)."
+)
+
 ```
 
 For each sampled time-series of our biological responses, we fit separate Bayesian hierarchical generalized linear mixed effects models (GLMMs) to assess the effect of each environmental variable on recruitment deviations. 
