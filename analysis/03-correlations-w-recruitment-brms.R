@@ -210,12 +210,14 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   saveRDS(coefs, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
-    "start-", r_start_year, "-",
+    scenario, "-", 
+    "start-", r_start_year, "-", 
     n_draws, "-draws-", length(unique(data$type)),
     if(shortlist){"-short"}, ".rds"
   ))
     saveRDS(p, paste0(
       "stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+      scenario, "-", 
       "start-", r_start_year, "-",
       n_draws, "-draws-", length(unique(data$type)),
       if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"
@@ -223,6 +225,7 @@ for (i in seq_along(sort(unique(data$type)))) {
 
   saveRDS(m, paste0(
     "stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+    scenario, "-", 
     "start-", r_start_year, "-",
     n_draws, "-draws-", length(unique(data$type)),
     if(shortlist){"-short"}, ".rds"
@@ -231,14 +234,17 @@ for (i in seq_along(sort(unique(data$type)))) {
 
 ## load saved
   coefs <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-",
+                          scenario, "-", 
                           "start-", r_start_year, "-",
                           n_draws, "-draws-", length(unique(data$type)),
                           if(shortlist){"-short"}, ".rds"))
   p <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-plot-list-",
+                      scenario, "-", 
                       "start-", r_start_year, "-",
                       n_draws, "-draws-", length(unique(data$type)),
                       if(shortlist){"-short"}, if(FRENCH){"-FR"}, ".rds"))
   m <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-model-list-",
+                      scenario, "-", 
                       "start-", r_start_year, "-",
                       n_draws, "-draws-", length(unique(data$type)),
                       if(shortlist){"-short"}, ".rds"))
@@ -267,12 +273,12 @@ y_lab_big <- ggplot() +
       legend.position = "none",
       plot.tag.position = c(.2, .85)
     )) +
-  plot_annotation(tag_levels = list(c(
-    "", "A", "B", "C", "D",
-    "E", "F", "G", "H", "I",
-    "J", "K", "L", "M", "N",
-    "O", "P", "Q", "R", "S", "T", "U"
-  ))) +
+  # plot_annotation(tag_levels = list(c(
+  #   "", "A", "B", "C", "D",
+  #   "E", "F", "G", "H", "I",
+  #   "J", "K", "L", "M", "N",
+  #   "O", "P", "Q", "R", "S", "T", "U"
+  # ))) +
   plot_layout(widths = c(0.05, 2)))
 )
 
@@ -289,12 +295,12 @@ if (shortlist) {
                legend.position = "none",
                plot.tag.position = c(.2, .85)
              )) +
-            plot_annotation(tag_levels = list(c(
-              "", "A", "B", "C", "D",
-              "E", "F", "G", "H", "I",
-              "J", "K", "L", "M", "N",
-              "O", "P", "Q", "R", "S", "T", "U"
-            ))) +
+            # plot_annotation(tag_levels = list(c(
+            #   "", "A", "B", "C", "D",
+            #   "E", "F", "G", "H", "I",
+            #   "J", "K", "L", "M", "N",
+            #   "O", "P", "Q", "R", "S", "T", "U"
+            # ))) +
             plot_layout(widths = c(0.05, 2)))
   )
 
@@ -355,7 +361,7 @@ if (!shortlist) {
   # if(FRENCH) {
   # saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range-FR.rds"))
   # }else{
-  saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range.rds"))
+  saveRDS(dd_sum, paste0("stock-specific/",spp,"/output/rdev-uncertainty-range", "-", scenario, ".rds"))
   # }
 }
 
