@@ -125,7 +125,8 @@ Similarly, the Oceanic Ni\~no index (ONI) and the Southern Oscillation index (SO
 The Current Bifurcation index (BI) is a measure of how the North Pacific current splits, with positive values indicating more current water northwards towards the Alaska current and negative values indicating more current water southwards towards the California current.
 
 In order to examine potential influences of environmental variables on `r species`, we selected environmental variables for specific time periods that were hypothesized to impact recruitment. 
-We used annual values for annual indices (e.g. BI), whereas for indices and environmental variables available at a monthly resolution, we took the average across a three month seasonal window corresponding to the timing of the hypothesized effect (e.g. summer: June to August). We also applied varies lags (1 or 2 years) to environmental variables and indices to represent a priming of the ecosystem prior to recruitment events. 
+We used annual values for annual indices (e.g. BI), whereas for indices and environmental variables available at a monthly resolution, we took the average across a three month seasonal window corresponding to the timing of the hypothesized effect (e.g. summer = June to August). 
+We also applied varies lags (1 or 2 years) to environmental variables and indices to represent the ecosystem state prior to egg incubation or female spawning body condition. 
 All environmental variables were centered by their mean and scaled by their SD before analysis. 
 
 Spawning occurs at depths `r spawn_min` m to `r spawn_max` m [@love2011] (Figure \@ref(fig:spawn-O2)), so we calculated the mean sea floor oxygen concentration, salinity, and temperature for all cells containing these depths for each month and then took the average of across the a three month window. 
@@ -236,7 +237,9 @@ make_group <- function(x) {
     grepl("^ONI", x)                    ~ "ONI",
     grepl("^SOI", x)                    ~ "SOI",
     grepl("^AO", x)                     ~ "AO",
+    grepl("NPI", x)                     ~ "NPI",
     grepl("Current bifurcation", x)     ~ "Current bifurcation",
+    grepl("Copepods", x)                     ~ "Copepods",
     TRUE ~ gsub("\\s*\\(.*", "", x)   # strip "(...)" so e.g. "Seafloor O2 (Jan-Mar)" -> "Seafloor O2"
   )
 }
@@ -269,7 +272,7 @@ env_table <- env_summary |>
 
 knitr::kable(
   env_table,
-  caption = "Summary of variables grouped by category, showing the maximum R^2 across linear (lm) and quadratic (qm) models and whether any member of the group was selected (R^2 > 0.1)."
+  caption = "Summary of variables grouped by category, showing the maximum R^2 across linear (lm) and quadratic (qm) models and whether any member of the group was selected (R^2 > 0.1). The seasonal temporal resolution tested for each variable are grouped into their broader environmental variable categories in this table."
 )
 
 ```
@@ -325,25 +328,22 @@ knitr::include_graphics(here::here(paste0("stock-specific/",spp,"/figs/rdev-envi
 
 ## ENVIRONMENTAL CONDITIONS
 
+## Environmental conditions potentially impacting recruitment
+
+To assess possible impacts of environmental conditions on Dover Sole, we considered recruitment as a biological response.  We selected a set of climate and biotic indices that we hypothesized to be potentially important for egg and pelagic larval survival (Appendix F). These included average climate indices and environmental variables that accounted for the spawning period (`r spawning_months`) and depths (`r spawn_min` m - `r spawn_max` m) at the start of each recruitment year as well as in prior years as an index for the environment leading up to egg incubation, or female spawning body condition (e.g. Oceanic Niño Index (ONI), North Pacific Gyre Oscillation Index (NPGO), Current Bifurcation Index (BI), Pacific Decadal Oscillation (PDO), mean sea floor oxygen concentration, and mean sea floor temperature). Similarly, we used climate indices and environmental variables tha accounted for sea surface conditions during the full potential pelagic period (`r pelagic_months`) (e.g. ONI, BI, sea surface salinity, sea surface dissolved O2 concentration). For both the spawning and pelagic larval periods, we averaged environmental variables and climate indices over three-month seasonal windows to better capture short-term variability, rather than using longer multi-month averages that would smooth over important fluctuations. While many of these variables are correlated (Figure \@ref(fig:env-cor)), our approach was to run each variable separately in a univariate analysis; more consideration would need to be taken for a multivariate approach.  
+
 ## Bayesian time-series regressions
 
-To assess possible impacts of environmental conditions on `r species`, we considered recruitment as a biological response. 
 For recruitment, we used 100 MCMC samples of the recruitment deviations from the ensemble base model. 
 We restricted this analysis to the period from `r rdev_years[1]` to `r rdev_years[2]` for which age data with the potential to inform recruitment estimates were available. 
 
-We tested the correlation between recruitment and a range of climate indices and environmental variables that were hypothesized to be important for `r species` based on life history knowledge and existing literature (see [cite Appendix]). 
+For each recruitment time series sample, We tested the correlation between recruitment and a range of climate indices and environmental variables.
 These variables were first filtered using simple linear and quadratic regressions to retain only those variables with an R^2 value over 0.1 with the median recruitment estimates. 
 Then we used a Bayesian approach of a time-series regression to assess the strength of evidence for each relationship. 
 Regressions were again conducted on the median estimates for each variable combination to confirm convergence of the Bayesian model and then repeated for each MCMC sample recruitment time series. 
 We then combined the posteriors from all the regressions across samples to derive posterior distributions that accounted for uncertainty in both the stock assessment and the regression models. 
 Full description of Bayesian time-series regression and the details of all the following data sources are provided in [cite appendix]. 
 
-## Environmental conditions potentially impacting recruitment
-
-We selected a set of climate and biotic indices that we hypothesized to be potentially important for egg and pelagic larval survival (see Appendix). 
-These included average climate indices and environmental variables representing the spawning period (`r spawning_months`) and depths (`r spawn_min`m-`r spawn_max`m) at the start of each recruitment year as well as in prior years as an index for 'priming' the environment (e.g. Oceani Ni\~no Index (ONI), North Pacific Gyre Oscillation index (NPGO), Current Bifurcation index (BI), Pacific Decadal Oscillation (PDO), mean sea floor oxygen concentration, and mean sea floor temperature). 
-Similarly, we used climate indices and environmental variables representing the pelgaic larval period representing sea surface conditions during the full potential pelagic period (e.g. ONI, BI, sea surface salinity, sea surface dissolved O^2 concentration). 
-While many of these variables are correlated (Figure \@ref(fig:env-cor)), our approach is to run each variable separately in a univariate analysis; more consideration would need to be taken for a multivariate approach.
 
 # For Results section of assessment
 
@@ -351,11 +351,13 @@ While many of these variables are correlated (Figure \@ref(fig:env-cor)), our ap
 
 ### Environmental conditions potentially impacting recruitment
 
-Recruitment deviations in `r species` were found to should moderate correlations with a number of environmental variables in the initial linear and quadratic regression analysis (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). 
-However, these correlations were less apparent when we accounted for uncertainty in the outputs from the stock recruit analysis (Figure \@ref(fig:rdev-violins) & \@ref(fig:rdev-pred)). 
-The variables that showed the strongest relationships were the current bifurcation index for the recruitment year, NPGO during the winter in the year prior to recruitment, and the ONI in the spring of the recruitment year. 
-None of the environmental variables (non-climate indices) showed a strong relationship with recruitment deviations. 
-Some climate indices and environmental variables showed quadratic relationships that represented slight dampening or acceleration at extreme values. 
-In contrast, recruitment appeared distinctly higher for both the highest and lowest values of pelagic period phytoplankton.
+Recruitment deviations in `r species` showed low to moderate (0.1 < R2 < 0.3) correlations with a number of environmental variables in the initial linear and quadratic regression analysis (Figure \@ref(fig:lm-reg) & \@ref(fig:qm-reg)). 
+However, these correlations were less apparent when we accounted for uncertainty in recruitment output from the assessment (Figure \@ref(fig:rdev-violins) & \@ref(fig:rdev-pred)). 
+The variables that showed the strongest relationships in the initial linear and quadratic regressions were the current bifurcation index for the recruitment year, NPGO during the winter in the year prior to recruitment, and the ONI in the spring of the recruitment year. However, all of these relationships had R2 values less than 0.25. 
+When the Bayesian time series analysis was used to better account for uncertainty in recruitment deviations, most of these effects were diminished.
+Some climate indices (e.g. MEI, NPGO, BI, and ONI) may have an effect on recruitment deviations, however the environmental variables (non-climate indices) showed a zero to minimal effect on recruitment deviations. 
+Some climate indices and environmental variables showed some curvature relationship (parabolic or u-shaped). 
+
+Given the lack of any strong relationship between Dover Sole recruitment and the range of environmental and climate variables explored, we did not attempt to integrate environmental conditions into the stock assessment model.  
 
 ## References
