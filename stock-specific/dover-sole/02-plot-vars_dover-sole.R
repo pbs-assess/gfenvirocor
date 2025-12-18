@@ -196,12 +196,12 @@ ggsave(paste0("stock-specific/",spp,"/figs", if(FRENCH){"-french"},
 # ---
 # --- Table of variable coefs for rmd ---#
 # need to be run after 03-linear and quadratic scripts 
-coefs_lm <- readRDS(here::here(paste0("stock-specific/dover-sole/output/rdev-enviro-corr-coefs-lm-Final11-147.rds"))) |>
+coefs_lm <- readRDS(here::here(paste0("stock-specific/", spp, "/output/rdev-enviro-corr-coefs-lm-Final11-147.rds"))) |>
   bind_rows()
-coefs_qm <- readRDS(here::here(paste0("stock-specific/dover-sole/output/rdev-enviro-corr-coefs-lm-quadratic-Final11-147.rds"))) |>
+coefs_qm <- readRDS(here::here(paste0("stock-specific/", spp, "/output/rdev-enviro-corr-coefs-lm-quadratic-Final11-147.rds"))) |>
   bind_rows()
 
-dvrsub <- readRDS(here::here(paste0("stock-specific/dover-sole/data/envrio-vars-for-rdevs-dvrsub.rds")))
+dvrsub <- readRDS(here::here(paste0("stock-specific/", spp, "/data/envrio-vars-for-rdevs-dvrsub.rds")))
 selected_vars <- unique(dvrsub$type)
 
 # coefs_lm and coefs_qm are lists of tibbles; bind each set
@@ -265,111 +265,7 @@ env_table <- env_summary |>
   ) |>
   select(Variable, `Max lm R^2`, `Max qm R^2`, Selected)
 
-saveRDS(env_table, paste0("stock-specific/",spp,"/figs/env_var_table.rds"))
+saveRDS(env_table, paste0("stock-specific/", spp, "/figs/env_var_table.rds"))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ---
-# --- Table of variable coefs for rmd ---#
-# need to be run after 03-linear and quadratic scripts 
-coefs_lm <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-lm-", 
-                           scenario, "-", length(plots), if (isTRUE(shortlist)) "-short", ".rds")) |>
-  bind_rows()
-coefs_qm <- readRDS(paste0("stock-specific/",spp,"/output/rdev-enviro-corr-coefs-lm-quadratic-", 
-                           scenario, "-", length(plots), if (isTRUE(shortlist)) "-short", ".rds")) |>
-  bind_rows()
-
-selected_vars <- unique(dvrsub$type)
-
-# coefs_lm and coefs_qm are lists of tibbles; bind each set
-coefs_lm2 <- coefs_lm |>
-  transmute(
-    var_names,
-    model = "linear",
-    r2    = r_squared
-  )
-
-coefs_qm2 <- coefs_qm |>
-  transmute(
-    var_names,
-    model = "quadratic",
-    r2    = r_squared
-  )
-
-coefs_all <- bind_rows(coefs_lm2, coefs_qm2) |>
-  pivot_wider(id_cols = var_names, names_from = model, values_from = r2)
-
-
-# ---- 2. Collapse to broader "categories" (e.g. MEI, NPGO, Seafloor O2) ----
-make_group <- function(x) {
-  case_when(
-    grepl("^MEI", x)                    ~ "MEI",
-    grepl("^NPGO", x)                   ~ "NPGO",
-    grepl("^PDO", x)                    ~ "PDO",
-    grepl("^ONI", x)                    ~ "ONI",
-    grepl("^SOI", x)                    ~ "SOI",
-    grepl("^AO", x)                     ~ "AO",
-    grepl("Current bifurcation", x)     ~ "Current bifurcation",
-    TRUE ~ gsub("\\s*\\(.*", "", x)   # strip "(...)" so e.g. "Seafloor O2 (Jan-Mar)" -> "Seafloor O2"
-  )
-}
-
-coefs_all_grp <- coefs_all |>
-  mutate(group = make_group(var_names))
-
-selected_vars <- data.frame(type = selected_vars) |>
-  mutate(group = make_group(type)) 
-
-# ---- 3. One row per group: highest R^2 and whether any member was selected ----
-env_summary <- coefs_all_grp |>
-  group_by(group) |>
-  summarise(
-    max_r2_lm   = max(linear, na.rm = TRUE),
-    max_r2_qm   = max(quadratic, na.rm = TRUE),
-    selected = any(var_names %in% unique(selected_vars$type)),
-    .groups  = "drop"
-  ) 
-
-# ---- 4. Make a clean table for the Rmd ----
-env_table <- env_summary |>
-  mutate(
-    Variable   = group,
-    `Max lm R^2`  = round(max_r2_lm, 3),
-    `Max qm R^2`  = round(max_r2_qm, 3),
-    Selected   = if_else(selected, "\u2713", "")
-  ) |>
-  select(Variable, `Max lm R^2`, `Max qm R^2`, Selected)
-
-knitr::kable(
-  env_table,
-  caption = "Summary of variables grouped by category, showing the maximum R^2 across linear and quadratic models and whether any member of the group was selected (R^2 > 0.1)."
-)
 
